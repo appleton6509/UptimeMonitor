@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace UptimeAPI
@@ -26,8 +27,9 @@ namespace UptimeAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-        }
 
+               services.AddDbContext<UptimeContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")));
+        }
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
