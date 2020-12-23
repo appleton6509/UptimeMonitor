@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace UptimeAPI.Migrations
+namespace Data.Migrations
 {
     public partial class Initialcreate : Migration
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Core.Models
+namespace Data.Models
 {
     public class User
     {

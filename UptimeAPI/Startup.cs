@@ -11,6 +11,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Data;
+using AutoMapper;
+using Data.Mapping;
 
 namespace UptimeAPI
 {
@@ -28,7 +31,9 @@ namespace UptimeAPI
         {
             services.AddControllers();
 
-               services.AddDbContext<UptimeContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")));
+               services.AddDbContext<UptimeContext>(options => 
+               options.UseSqlServer(Configuration.GetConnectionString("Default"),s => s.MigrationsAssembly("Data")));
+            services.AddAutoMapper(typeof(MappingProfile));
         }
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

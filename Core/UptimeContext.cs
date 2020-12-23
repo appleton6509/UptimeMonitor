@@ -1,12 +1,13 @@
-﻿using Core.Models;
+﻿using Data.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace UptimeAPI
+namespace Data
 {
-    public class UptimeContext : DbContext
+    public class UptimeContext : IdentityDbContext
     {
         public UptimeContext(DbContextOptions options) : base(options)
         {
@@ -16,6 +17,5 @@ namespace UptimeAPI
         public DbSet<EndPoint> EndPoint { get; set; }
         public DbSet<User> User { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder) { }
     }
 }

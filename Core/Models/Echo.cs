@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Core.Models
+namespace Data.Models
 {
     public class Echo
     {
