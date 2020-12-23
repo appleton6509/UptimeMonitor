@@ -15,7 +15,6 @@ namespace UptimeAPI.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly DbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IMapper _mapper;
 
@@ -25,15 +24,30 @@ namespace UptimeAPI.Controllers
             _userManager = userManager;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> SignIn(UserDTO userDTO)
+        [HttpGet("")]
+        public async Task<IActionResult> Username()
+        {
+
+            return Problem("Username already exists");
+        }
+        [HttpPost("")]
+        public async Task<IActionResult> SignUp(UserDTO userDTO)
         {
             var userManager = await _userManager.FindByNameAsync(userDTO.Username);
+            if (Object.Equals(userManager,null))
+            {
+                var user = _mapper.Map<UserDTO,IdentityUser>(userDTO);
+                var userCreateResult = await _userManager.CreateAsync(user, userDTO.Password);
+                if (userCreateResult.Succeeded)
+                {
+                    return Created(String.Empty, String.Empty);
+                }
+                return Problem(userCreateResult.Errors.First().Description, null, 500);
+            }
 
-            return Ok();
+            return Conflict("Username already exists");
         }
 
-        public async Task<IActionResult> 
     }
 }
 

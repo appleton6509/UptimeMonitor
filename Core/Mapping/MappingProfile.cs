@@ -12,6 +12,8 @@ namespace Data.Mapping
         public MappingProfile()
         {
             CreateMap<IdentityUser, UserDTO>();
+            CreateMap<UserDTO, IdentityUser>()
+                .ForMember(u => u.Email, opt => opt.MapFrom(ur => ur.Username));
         }
         
     }

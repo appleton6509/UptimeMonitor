@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Data;
 using AutoMapper;
 using Data.Mapping;
+using Microsoft.AspNetCore.Identity;
 
 namespace UptimeAPI
 {
@@ -30,10 +31,10 @@ namespace UptimeAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-
-               services.AddDbContext<UptimeContext>(options => 
-               options.UseSqlServer(Configuration.GetConnectionString("Default"),s => s.MigrationsAssembly("Data")));
+            services.AddDbContext<UptimeContext>(options =>
+                    options.UseSqlServer(Configuration.GetConnectionString("Default"), s => s.MigrationsAssembly("Data")));
             services.AddAutoMapper(typeof(MappingProfile));
+            services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<UptimeContext>().AddDefaultTokenProviders();
         }
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -41,12 +42,16 @@ namespace UptimeAPI
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+            } else
+            {
+                app.UseHsts();
             }
 
             app.UseHttpsRedirection();
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
