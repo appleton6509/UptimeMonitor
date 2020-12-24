@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Data.DTOs
 {
-    public class UserDTO
+    public class WebUserDTO
     {
         public string Username { get; set; }
         public string Password { get; set; }
