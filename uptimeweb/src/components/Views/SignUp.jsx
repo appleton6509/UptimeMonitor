@@ -1,4 +1,3 @@
-
 import React, { Component } from 'react';
 import { Card, Button, Container, Row, Col, CardBody, Form, FormGroup, Label, Input } from 'reactstrap';
 
@@ -9,8 +8,27 @@ export class SignUp extends Component {
         super(props);
         this.state = {
             Username: "",
-            Password: ""
+            Password: "",
+            httperror: ""
         }
+    }
+    postUser = async (jsonbody, uri) => {
+        this.setState({error: ""});
+        return await fetch(uri, {
+            method: 'POST',
+            body: jsonbody,
+            headers: {
+                'Accept': '*/*',
+                'Content-Type': 'application/json'
+            }
+        }).then(res => {
+            if (!res.ok)
+                return res.text()
+        }).then(message => {
+            this.setState({ httperror: message })
+        }).catch(err => {
+            this.setState({ httperror: "something went wrong" })
+        });
     }
     onSubmit = async (event) => {
         event.preventDefault();
@@ -18,21 +36,13 @@ export class SignUp extends Component {
             Username: this.state.Username,
             Password: this.state.Password
         }
-        const jsonbody = JSON.stringify(body);
-        const uri = 'https://localhost:44373/api/Auth/SignUp'
-        const response = await fetch(uri, {
-            method: 'POST',
-            body: jsonbody,
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        }
-        ).then(res => res.json())
-            .catch(err => console.log("error:" + err));
+        const uri = 'https://localhost:44373/api/Auth/SignUp';
+        await this.postUser(JSON.stringify(body), uri);
+        if (this.state.httperror)
+            console.log(this.state.httperror);
 
-        console.log("response:" + response);
     }
+
     handleUserChange = (e) => {
         this.setState({ Username: e.target.value })
     }

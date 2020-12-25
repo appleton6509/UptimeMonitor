@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using AutoMapper;
 using Data.DTOs;
@@ -40,9 +41,11 @@ namespace UptimeAPI.Controllers
                 var userCreateResult = await _userManager.CreateAsync(user, userDTO.Password);
                 if (userCreateResult.Succeeded)
                 {
+                  
                     return Created(String.Empty, String.Empty);
                 }
-                return Problem(userCreateResult.Errors.First().Description, null, 500);
+ 
+                return Conflict(userCreateResult.Errors.First().Description);
             }
             return Conflict("Username already exists");
         }
@@ -56,7 +59,6 @@ namespace UptimeAPI.Controllers
             {
                 return Ok(new JwtTokenService().GenerateToken(user,_jwtSettings));
             }
-            
             return BadRequest("username or password incorrect");
         }
 
