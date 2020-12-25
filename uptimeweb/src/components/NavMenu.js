@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Collapse, Container, Navbar, NavbarBrand, NavbarToggler, NavItem, NavLink } from 'reactstrap';
+import { Collapse, Container, Navbar,Button, NavbarBrand, NavbarToggler, NavItem, NavLink } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import './NavMenu.css';
 
@@ -8,14 +8,12 @@ export class NavMenu extends Component {
 
     constructor(props) {
         super(props);
-
-        this.toggleNavbar = this.toggleNavbar.bind(this);
         this.state = {
             collapsed: true
         };
     }
 
-    toggleNavbar() {
+    toggleNavbar = () =>{
         this.setState({
             collapsed: !this.state.collapsed
         });
@@ -26,7 +24,7 @@ export class NavMenu extends Component {
             <header>
                 <Navbar className="navbar-expand-sm navbar-toggleable-sm bg-white border-bottom box-shadow" light>
                     <Container>
-                        <NavbarBrand tag={Link} to="/">EP Monitor</NavbarBrand>
+                        <NavbarBrand tag={Link} to="/">Uptime Monitor</NavbarBrand>
                         <NavbarToggler onClick={this.toggleNavbar} className="mr-2" />
                         <Collapse className="d-sm-inline-flex flex-sm-row-reverse" isOpen={!this.state.collapsed} navbar>
                             <ul className="navbar-nav flex-grow">
@@ -34,13 +32,11 @@ export class NavMenu extends Component {
                                     <NavLink tag={Link} className="text-dark" to="/">Dashboard</NavLink>
                                 </NavItem>
                                 <NavItem>
-                                    <NavLink tag={Link} className="text-dark" to="/Location">Location</NavLink>
-                                </NavItem>
-                                <NavItem>
-                                    <NavLink tag={Link} className="text-dark" to="/TestView">TestView</NavLink>
+                                <Button tag={Link} className="btn-success" to="/SignUp">Get Started</Button>
                                 </NavItem>
                             </ul>
                         </Collapse>
+                        
                     </Container>
                 </Navbar>
             </header>

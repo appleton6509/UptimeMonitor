@@ -30,6 +30,7 @@ namespace UptimeAPI
         }
 
         public IConfiguration Configuration { get; }
+        private readonly string AppCorsPolicy = "_appCorsPolicy";
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -56,6 +57,11 @@ namespace UptimeAPI
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
                 });
 
+            //Cors policy 
+            services.AddCors(options =>
+            {
+                options.AddPolicy(AppCorsPolicy, builder => builder.AllowAnyOrigin().AllowAnyHeader());
+            });
 
         }
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -72,6 +78,8 @@ namespace UptimeAPI
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors(AppCorsPolicy);
 
             app.UseAuthentication();
             app.UseAuthorization();

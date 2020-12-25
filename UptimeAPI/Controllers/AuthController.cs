@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Data.DTOs;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -28,6 +29,7 @@ namespace UptimeAPI.Controllers
             _userManager = userManager;
             _jwtSettings = jwtSettings.Value;
         }
+
         [HttpPost("SignUp")]
         public async Task<IActionResult> SignUp(WebUserDTO userDTO)
         {
