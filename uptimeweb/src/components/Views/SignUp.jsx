@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Card, Button, Container, Row, Col, CardBody, Form, FormGroup, Label, Input } from 'reactstrap';
+import { Card, Button, Container, Row, Col, CardBody, Form, 
+    FormGroup, Label, Input,PopoverBody, UncontrolledPopover } from 'reactstrap';
 
 
 export class SignUp extends Component {
@@ -9,12 +10,17 @@ export class SignUp extends Component {
         this.state = {
             Username: "",
             Password: "",
-            httperror: ""
+            httperror: "",
+            popoverOpen: false
         }
     }
+
+    setPopoverOpen = () => {
+        this.setState({ popoverOpen: !this.popoverOpen })
+    }
     postUser = async (jsonbody, uri) => {
-        this.setState({error: ""});
-        return await fetch(uri, {
+        this.setState({ error: "" });
+        await fetch(uri, {
             method: 'POST',
             body: jsonbody,
             headers: {
@@ -38,9 +44,11 @@ export class SignUp extends Component {
         }
         const uri = 'https://localhost:44373/api/Auth/SignUp';
         await this.postUser(JSON.stringify(body), uri);
-        if (this.state.httperror)
+        if (this.state.httperror) {
             console.log(this.state.httperror);
-
+        }
+        //else 
+        //do something
     }
 
     handleUserChange = (e) => {
@@ -67,11 +75,20 @@ export class SignUp extends Component {
                                         <Input type="password" id="password" name="password" placeholder="strong password goes here" onChange={this.handlePasswordChange} />
                                     </FormGroup>
                                     <FormGroup className="text-center">
-                                        <Button type="submit" >OK</Button>
+                                        <Button type="submit" id="btnSubmit">OK</Button>
                                     </FormGroup>
                                 </Form>
+                                <UncontrolledPopover isOpen={this.state.popoverOpen} trigger="focus click" placement="bottom"
+                                    toggle={this.setPopoverOpen} target="btnSubmit">
+                                    <PopoverBody>{this.state.httperror}</PopoverBody>
+                                </UncontrolledPopover>
                             </CardBody>
                         </Card>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col>
+
                     </Col>
                 </Row>
             </Container>
