@@ -41,7 +41,6 @@ namespace UptimeAPI.Controllers
                 var userCreateResult = await _userManager.CreateAsync(user, userDTO.Password);
                 if (userCreateResult.Succeeded)
                 {
-                  
                     return Created(String.Empty, String.Empty);
                 }
  

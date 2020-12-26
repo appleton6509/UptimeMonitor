@@ -8,9 +8,7 @@ export class Layout extends Component {
     return (
       <Fragment>
         <NavMenu />
-
         {this.props.children}
-
       </Fragment>
     );
   }
