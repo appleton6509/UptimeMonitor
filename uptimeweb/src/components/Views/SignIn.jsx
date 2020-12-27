@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Card, Button, Container, Row, Col, CardBody, Form, 
     FormGroup, Label, Input,PopoverBody, UncontrolledPopover } from 'reactstrap';
-
+import authservice from '../Services/authservice'
 
 export class SignIn extends Component {
     static displayName = SignIn.name;
@@ -12,50 +12,20 @@ export class SignIn extends Component {
             Password: "",
             httperror: "",
             popoverOpen: false,
-            token: "",
-            tokenReceived: false
         }
     }
 
     setPopoverOpen = () => {
         this.setState({ popoverOpen: !this.popoverOpen })
     }
-    postSignIn = async (jsonbody, uri) => {
-        this.setState({ error: "" });
-        await fetch(uri, {
-            method: 'POST',
-            body: jsonbody,
-            headers: {
-                'Accept': '*/*',
-                'Content-Type': 'application/json'
-            }
-        }).then(res => {
-            if (res.ok)
-                this.setState({tokenReceived: true})
-            return res.text()       
-        }).then(message => {
-            if (this.state.tokenReceived)
-                this.setState({token: message});
-            else 
-                this.setState({ httperror: message })
-        }).catch(err => {
-            this.setState({ httperror: "something went wrong" })
-        });
-    }
+    
     onSubmit = async (event) => {
         event.preventDefault();
-        const body = {
-            Username: this.state.Username,
-            Password: this.state.Password
-        }
-        const uri = 'https://localhost:44373/api/Auth/SignIn';
-        await this.postSignIn(JSON.stringify(body), uri);
-        if (this.state.httperror) {
-            console.log(this.state.httperror);
-        }
-        console.log("token:"+this.state.token);
-        console.log("tokenreceived?:"+this.state.tokenReceived);
-        //else 
+
+        let result = await new authservice().signIn(this.state.Username,this.state.Password);
+        if (!result.tokenReceived)
+            this.setState({httperror: result.error});
+
         //do something
     }
 
@@ -101,7 +71,6 @@ export class SignIn extends Component {
                         </Card>
                     </Col>
                 </Row>
-
             </Container>
         )
     }

@@ -1,5 +1,6 @@
 import uribuilder from '../Utilities/uribuilder'
-export default class FetchService  {
+import authservice from '../Services/authservice'
+export default class fetchservice  {
     constructor(uri,method) {
         this.uri = uri;
         this.method = method;
@@ -10,6 +11,7 @@ export default class FetchService  {
      * @param {Object} body 
      */
     async post(uri,body) {
+        authservice.signIn()
         const response = await fetch(uri,{
             method: 'POST',
             body: JSON.stringify(body)
