@@ -75,14 +75,14 @@ export class SignUp extends Component {
                                 <Form onSubmit={this.onSubmit}>
                                     <FormGroup>
                                         <Label>Email / UserName</Label>
-                                        <Input type="email" id="username" name="username" placeholder="email address" onChange={this.handleUserChange} />
+                                        <Input type="text" formNoValidate required={false} id="username" name="username" placeholder="email address" onChange={this.handleUserChange} />
                                     </FormGroup>
                                     <FormGroup>
                                         <Label>Password</Label>
-                                        <Input type="password" id="password" name="password" placeholder="strong password goes here" onChange={this.handlePasswordChange} />
+                                        <Input type="password" formNoValidate required={false} id="password" name="password"  placeholder="strong password goes here" onChange={this.handlePasswordChange} />
                                     </FormGroup>
                                     <FormGroup className="text-center">
-                                        <Button type="submit" id="btnSubmit">OK</Button>
+                                        <Button type="submit" id="btnSubmit" className="mb-4" >OK</Button>
                                     </FormGroup>
                                 </Form>
                                 <UncontrolledPopover isOpen={this.state.popoverOpen} trigger="focus click" placement="bottom"

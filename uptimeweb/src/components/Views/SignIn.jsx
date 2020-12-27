@@ -3,6 +3,7 @@ import { Card, Button, Container, Row, Col, CardBody, Form,
     FormGroup, Label, Input,PopoverBody, UncontrolledPopover } from 'reactstrap';
 import authservice from '../Services/authservice'
 
+
 export class SignIn extends Component {
     static displayName = SignIn.name;
     constructor(props) {
@@ -10,7 +11,7 @@ export class SignIn extends Component {
         this.state = {
             Username: "",
             Password: "",
-            httperror: "",
+            responseMessage: "",
             popoverOpen: false,
         }
     }
@@ -21,10 +22,11 @@ export class SignIn extends Component {
     
     onSubmit = async (event) => {
         event.preventDefault();
-
         let result = await new authservice().signIn(this.state.Username,this.state.Password);
-        if (!result.tokenReceived)
-            this.setState({httperror: result.error});
+        if (!result.message && result.tokenReceived)
+            this.setState({responseMessage: "Success"});
+        else 
+            this.setState({responseMessage: result.message});
 
         //do something
     }
@@ -53,19 +55,19 @@ export class SignIn extends Component {
                                 <Form onSubmit={this.onSubmit}>
                                     <FormGroup>
                                         <Label>Email / UserName</Label>
-                                        <Input type="email" id="username" name="username" placeholder="email address" onChange={this.handleUserChange} />
+                                        <Input type="text" id="username" name="username" formNoValidate required={false} placeholder="email address" onChange={this.handleUserChange} />
                                     </FormGroup>
                                     <FormGroup>
                                         <Label>Password</Label>
-                                        <Input type="password" id="password" name="password" placeholder="strong password goes here" onChange={this.handlePasswordChange} />
+                                        <Input type="password" id="password" name="password" formNoValidate required={false} placeholder="strong password goes here" onChange={this.handlePasswordChange} />
                                     </FormGroup>
                                     <FormGroup className="text-center">
                                         <Button type="submit" id="btnSubmit">OK</Button>
                                     </FormGroup>
                                 </Form>
-                                <UncontrolledPopover isOpen={this.state.popoverOpen} trigger="focus click" placement="bottom"
+                                <UncontrolledPopover isOpen={this.state.popoverOpen} placement="bottom"
                                     toggle={this.setPopoverOpen} target="btnSubmit">
-                                    <PopoverBody>{this.state.httperror}</PopoverBody>
+                                    <PopoverBody>{this.state.responseMessage}</PopoverBody>
                                 </UncontrolledPopover>
                             </CardBody>
                         </Card>

@@ -1,4 +1,4 @@
-
+import { API_URI } from "../Settings/globals.js";
 
 /**
  * service for providing authorization to the API
@@ -18,10 +18,10 @@ export default class authservice {
      */
     async signIn(username,password)  { 
         var status = {
-            httperror: "",
+            message: "",
             tokenReceived: false
         }
-        const uri = 'https://localhost:44373/api/Auth/SignIn';
+        const uri = API_URI + "Auth/SignIn"
         const jsonbody = JSON.stringify({Username: username,Password: password});
         await fetch(uri, {
             method: 'POST',
@@ -38,13 +38,13 @@ export default class authservice {
             if (status.tokenReceived)
                 this.setToken(message);
             else 
-                status.httperror = message;
+                status.message = message;
         }).catch(err => {
-            status.httperror = "Something went wrong.";
+            status.message = "Something went wrong.";
         });     
         return new Promise((resolve,reject) => {
             resolve(status);
-        })
+        });
     }
     /**
      * returns the existing token string

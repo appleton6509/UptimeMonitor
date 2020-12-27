@@ -1,27 +1,24 @@
-import uribuilder from '../Utilities/uribuilder'
 import authservice from '../Services/authservice'
-export default class fetchservice  {
-    constructor(uri,method) {
-        this.uri = uri;
-        this.method = method;
-    }
 
+
+export default class fetchservice  {
+    getHeaders = () => {
+        const token = new authservice().getToken();
+        return {
+            'Accept': '*/*',
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer '+ token
+        }
+    };
     /**
      * 
-     * @param {Object} body 
+     * @param {string} URI 
      */
-    async post(uri,body) {
-        authservice.signIn()
-        const response = await fetch(uri,{
-            method: 'POST',
-            body: JSON.stringify(body)
-        }).then(res => res.json())
-        .catch(err=> console.log(err));
-        return response;
+    async get(uri) {
+        const headers = this.getHeaders();
+        return await fetch(uri, {
+            method: 'GET',
+            headers: headers
+        });
     }
-    
-    get(token) {
-
-    }
-
 }

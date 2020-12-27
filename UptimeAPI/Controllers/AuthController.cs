@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using AutoMapper;
+using Data;
 using Data.DTOs;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
@@ -20,15 +21,18 @@ namespace UptimeAPI.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IMapper _mapper;
         private readonly JwtSettings _jwtSettings;
+        private readonly UptimeContext _context;
 
         public AuthController(
             UserManager<IdentityUser> userManager
             , IMapper mapper
-            , IOptionsSnapshot<JwtSettings> jwtSettings)
+            , IOptionsSnapshot<JwtSettings> jwtSettings
+            , UptimeContext context)
         {
             _mapper = mapper;
             _userManager = userManager;
             _jwtSettings = jwtSettings.Value;
+            _context = context;
         }
 
         [HttpPost("SignUp")]
@@ -41,6 +45,8 @@ namespace UptimeAPI.Controllers
                 var userCreateResult = await _userManager.CreateAsync(user, userDTO.Password);
                 if (userCreateResult.Succeeded)
                 {
+                    _context.User.Add(new Data.Models.User(userDTO.Username));
+                    await  _context.SaveChangesAsync();
                     return Created(String.Empty, String.Empty);
                 }
  
