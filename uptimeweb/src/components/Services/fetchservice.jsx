@@ -1,24 +1,21 @@
-import authservice from '../Services/authservice'
+import {getToken} from '../Services/authservice'
+import {API_URI} from '../Settings/API'
 
-
-export default class fetchservice  {
-    getHeaders = () => {
-        const token = new authservice().getToken();
+export function getHeaders() {
+        const token = getToken();
         return {
             'Accept': '*/*',
             'Content-Type': 'application/json',
             'Authorization': 'Bearer '+ token
         }
     };
-    /**
-     * 
-     * @param {string} URI 
-     */
-    async get(uri) {
-        const headers = this.getHeaders();
-        return await fetch(uri, {
-            method: 'GET',
-            headers: headers
-        });
-    }
+
+export async function fetchapi(route, method, body = null) {
+    const uri = API_URI + route;
+    const headers = getHeaders();
+    return await fetch(uri, {
+        method: method,
+        headers: headers,
+        body: (body != null ? JSON.stringify(body) : null) 
+    });
 }

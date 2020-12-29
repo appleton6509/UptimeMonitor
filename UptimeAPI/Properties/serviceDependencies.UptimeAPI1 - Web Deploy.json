@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "mssql3": {
+    "mssql1": {
       "type": "mssql",
       "connectionId": "Development",
       "suggestion": "true",

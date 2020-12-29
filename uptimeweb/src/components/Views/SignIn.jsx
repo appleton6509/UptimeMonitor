@@ -1,46 +1,46 @@
 import React, { Component } from 'react';
 import { Card, Button, Container, Row, Col, CardBody, Form, 
-    FormGroup, Label, Input,PopoverBody, UncontrolledPopover } from 'reactstrap';
-import authservice from '../Services/authservice'
-
+    FormGroup, Label, Input, Spinner} from 'reactstrap';
+import {login} from '../Services/authservice'
+import {ToastContainer, toast} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export class SignIn extends Component {
     static displayName = SignIn.name;
     constructor(props) {
         super(props);
         this.state = {
-            Username: "",
-            Password: "",
-            responseMessage: "",
-            popoverOpen: false,
+            username: "",
+            password: "",
         }
     }
 
-    setPopoverOpen = () => {
-        this.setState({ popoverOpen: !this.popoverOpen })
-    }
-    
     onSubmit = async (event) => {
         event.preventDefault();
-        let result = await new authservice().signIn(this.state.Username,this.state.Password);
-        if (!result.message && result.tokenReceived)
-            this.setState({responseMessage: "Success"});
+        this.setState({isLoading: true});
+        let result = await login(event.target.username.value,event.target.password.value);
+        if (result.success)
+            toast.success("Success");
         else 
-            this.setState({responseMessage: result.message});
-
+            toast.error(result.error);
+        setTimeout(()=>{this.setState({isLoading: false});},500);
         //do something
-    }
-
-    handleUserChange = (e) => {
-        this.setState({ Username: e.target.value })
-    }
-    handlePasswordChange = (e) => {
-        this.setState({ Password: e.target.value })
     }
 
     render() {
         return (
             <Container>
+                <ToastContainer
+                    position="bottom-center"
+                    autoClose={5000}
+                    hideProgressBar
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    />
                 <Row>
                     <Col>
                         <h1 className="mt-3 mb-3 text-center">
@@ -55,20 +55,19 @@ export class SignIn extends Component {
                                 <Form onSubmit={this.onSubmit}>
                                     <FormGroup>
                                         <Label>Email / UserName</Label>
-                                        <Input type="text" id="username" name="username" formNoValidate required={false} placeholder="email address" onChange={this.handleUserChange} />
+                                        <Input type="text" id="username" name="username" formNoValidate required={false} placeholder="email address" />
                                     </FormGroup>
                                     <FormGroup>
                                         <Label>Password</Label>
-                                        <Input type="password" id="password" name="password" formNoValidate required={false} placeholder="strong password goes here" onChange={this.handlePasswordChange} />
+                                        <Input type="password" id="password" name="password" formNoValidate required={false} placeholder="strong password goes here" />
                                     </FormGroup>
                                     <FormGroup className="text-center">
-                                        <Button type="submit" id="btnSubmit">OK</Button>
+                                    <Button  type="submit" id="btnSubmit" className="mb-4">
+                                        <div hidden={this.state.isLoading}> OK </div>
+                                        <Spinner hidden={!this.state.isLoading} as="span" animation="grow" size="sm" role="status" aria-hidden="true" />
+                                        </Button>
                                     </FormGroup>
                                 </Form>
-                                <UncontrolledPopover isOpen={this.state.popoverOpen} placement="bottom"
-                                    toggle={this.setPopoverOpen} target="btnSubmit">
-                                    <PopoverBody>{this.state.responseMessage}</PopoverBody>
-                                </UncontrolledPopover>
                             </CardBody>
                         </Card>
                     </Col>

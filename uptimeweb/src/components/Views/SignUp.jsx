@@ -1,66 +1,48 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Card, Button, Container, Row, Col, CardBody, Form, 
-    FormGroup, Label, Input,PopoverBody, UncontrolledPopover } from 'reactstrap';
+    FormGroup, Label, Input, Spinner} from 'reactstrap';
+import { createLogin } from '../Services/authservice'
+import {ToastContainer, toast} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-
-export class SignUp extends Component {
+export class SignUp extends PureComponent {
     static displayName = SignUp.name;
     constructor(props) {
         super(props);
         this.state = {
-            Username: "",
-            Password: "",
-            httperror: "",
-            popoverOpen: false
+            username: "",
+            password: "",
+            isLoading: false
         }
-    }
-
-    setPopoverOpen = () => {
-        this.setState({ popoverOpen: !this.popoverOpen })
-    }
-    postUser = async (jsonbody, uri) => {
-        this.setState({ error: "" });
-        await fetch(uri, {
-            method: 'POST',
-            body: jsonbody,
-            headers: {
-                'Accept': '*/*',
-                'Content-Type': 'application/json'
-            }
-        }).then(res => {
-            if (!res.ok)
-                return res.text()
-        }).then(message => {
-            this.setState({ httperror: message })
-        }).catch(err => {
-            this.setState({ httperror: "something went wrong" })
-        });
     }
     onSubmit = async (event) => {
         event.preventDefault();
-        const body = {
-            Username: this.state.Username,
-            Password: this.state.Password
+        this.setState({isLoading: true});
+        let result = await createLogin(event.target.username.value,event.target.password.value);
+        if (result.success) {
+            toast.success("Success");
+            window.location.replace("/");
         }
-        const uri = 'https://localhost:44373/api/Auth/SignUp';
-        await this.postUser(JSON.stringify(body), uri);
-        if (this.state.httperror) {
-            console.log(this.state.httperror);
-        }
-        //else 
-        //do something
-    }
-
-    handleUserChange = (e) => {
-        this.setState({ Username: e.target.value })
-    }
-    handlePasswordChange = (e) => {
-        this.setState({ Password: e.target.value })
+        else
+            toast.error(result.error);
+            setTimeout(()=>{this.setState({isLoading: false});},500);
+        
     }
 
     render() {
         return (
             <Container>
+                   <ToastContainer
+                    position="bottom-center"
+                    autoClose={5000}
+                    hideProgressBar
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    />
                 <Row>
                     <Col>
                         <h1 className="mt-3 mb-3 text-center">
@@ -75,20 +57,21 @@ export class SignUp extends Component {
                                 <Form onSubmit={this.onSubmit}>
                                     <FormGroup>
                                         <Label>Email / UserName</Label>
-                                        <Input type="text" formNoValidate required={false} id="username" name="username" placeholder="email address" onChange={this.handleUserChange} />
+                                        <Input type="text" formNoValidate required={false} id="username" name="username" 
+                                        placeholder="email address" />
                                     </FormGroup>
                                     <FormGroup>
                                         <Label>Password</Label>
-                                        <Input type="password" formNoValidate required={false} id="password" name="password"  placeholder="strong password goes here" onChange={this.handlePasswordChange} />
+                                        <Input type="password" formNoValidate required={false} id="password" name="password" 
+                                         placeholder="strong password goes here" />
                                     </FormGroup>
                                     <FormGroup className="text-center">
-                                        <Button type="submit" id="btnSubmit" className="mb-4" >OK</Button>
+                                    <Button  type="submit" id="btnSubmit" className="mb-4">
+                                        <div hidden={this.state.isLoading}> OK </div>
+                                        <Spinner hidden={!this.state.isLoading} as="span" animation="grow" size="sm" role="status" aria-hidden="true" />
+                                        </Button>
                                     </FormGroup>
                                 </Form>
-                                <UncontrolledPopover isOpen={this.state.popoverOpen} trigger="focus click" placement="bottom"
-                                    toggle={this.setPopoverOpen} target="btnSubmit">
-                                    <PopoverBody>{this.state.httperror}</PopoverBody>
-                                </UncontrolledPopover>
                             </CardBody>
                         </Card>
                     </Col>
