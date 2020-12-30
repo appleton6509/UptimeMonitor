@@ -4,21 +4,24 @@ using System.Text;
 
 namespace Data.Models
 {
-    public class User
+    public class WebUser
     {
-        public User(string userName)
+        public WebUser(string userName, string identityId)
         {
             this.UserName = userName;
+            this.IdentityId = identityId;
         }
 
-        public User(int iD, string userName, ICollection<EndPoint> endPoint)
+        public WebUser(int id, string userName, string identityId, ICollection<EndPoint> endPoint)
         {
-            ID = iD;
+            Id = id;
             UserName = userName;
             EndPoint = endPoint;
+            IdentityId = identityId;
         }
 
-        public int ID { get; set; }
+        public int Id { get; set; }
+        public string IdentityId { get; set; }
         public string UserName { get; set; }
         public virtual ICollection<EndPoint> EndPoint { get; set; }
     }

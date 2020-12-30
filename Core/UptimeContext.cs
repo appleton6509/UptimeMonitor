@@ -12,6 +12,6 @@ namespace Data
         public UptimeContext(DbContextOptions options) : base(options) { }
         public DbSet<Echo> Echo { get; set; }
         public DbSet<EndPoint> EndPoint { get; set; }
-        public DbSet<User> User { get; set; }
+        public DbSet<WebUser> WebUser { get; set; }
     }
 }

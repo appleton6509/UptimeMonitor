@@ -4,14 +4,16 @@ using Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Data.Migrations
 {
     [DbContext(typeof(UptimeContext))]
-    partial class UptimeContextModelSnapshot : ModelSnapshot
+    [Migration("20201230014148_modify user tables")]
+    partial class modifyusertables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,19 +53,19 @@ namespace Data.Migrations
                     b.Property<int>("UserID")
                         .HasColumnType("int");
 
-                    b.Property<int?>("WebUserId")
+                    b.Property<int?>("WebUserID")
                         .HasColumnType("int");
 
                     b.HasKey("ID");
 
-                    b.HasIndex("WebUserId");
+                    b.HasIndex("WebUserID");
 
                     b.ToTable("EndPoint");
                 });
 
             modelBuilder.Entity("Data.Models.WebUser", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .UseIdentityColumn();
@@ -74,7 +76,7 @@ namespace Data.Migrations
                     b.Property<string>("UserName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                    b.HasKey("ID");
 
                     b.ToTable("WebUser");
                 });
@@ -288,7 +290,7 @@ namespace Data.Migrations
                 {
                     b.HasOne("Data.Models.WebUser", null)
                         .WithMany("EndPoint")
-                        .HasForeignKey("WebUserId");
+                        .HasForeignKey("WebUserID");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

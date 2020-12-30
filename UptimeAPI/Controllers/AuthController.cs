@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Data;
 using Data.DTOs;
+using Data.Models;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -45,7 +46,7 @@ namespace UptimeAPI.Controllers
                 var userCreateResult = await _userManager.CreateAsync(user, userDTO.Password);
                 if (userCreateResult.Succeeded)
                 {
-                    _context.User.Add(new Data.Models.User(userDTO.Username));
+                    _context.WebUser.Add(new WebUser(userDTO.Username,user.Id));
                     await  _context.SaveChangesAsync();
                     return Created(String.Empty, String.Empty);
                 }
@@ -58,12 +59,15 @@ namespace UptimeAPI.Controllers
         [HttpPost("SignIn")]
         public async Task<IActionResult> SignIn(WebUserDTO userDTO)
         {
+
             IdentityUser user = await _userManager.FindByNameAsync(userDTO.Username);
-           var passwordIsValid = await  _userManager.CheckPasswordAsync(user, userDTO.Password);
-            if (passwordIsValid)
-            {
-                return Ok(new JwtTokenService().GenerateToken(user,_jwtSettings));
-            }
+            if (Object.Equals(user,null))
+                return BadRequest("incorrect user name");
+
+            var passwordIsValid = await  _userManager.CheckPasswordAsync(user, userDTO.Password);
+            WebUser webUser = _context.WebUser.FirstOrDefault(x => x.IdentityId.Equals(user.Id));
+            if (passwordIsValid && !Object.Equals(webUser, null))
+                    return Ok(new JwtTokenService().GenerateToken(webUser, _jwtSettings));
             return BadRequest("username or password incorrect");
         }
 
