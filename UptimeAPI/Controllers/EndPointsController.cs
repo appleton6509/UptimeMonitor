@@ -17,7 +17,7 @@ namespace UptimeAPI.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class EndPointsController : APIBaseController
+    public class EndPointsController : ApiBaseController
     {
         private readonly IMapper _mapper;
         private readonly UptimeContext _context;
@@ -33,6 +33,12 @@ namespace UptimeAPI.Controllers
             _userManager = userManager;
         }
 
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public Guid UserId()
+        {
+            Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid userId);
+            return userId;
+        }
         // GET: api/EndPoints
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EndPoint>>> GetEndPoint()
