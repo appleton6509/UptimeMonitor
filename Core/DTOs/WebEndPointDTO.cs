@@ -6,7 +6,8 @@ namespace Data.DTOs
 {
     public class WebEndPointDTO
     {
-        public string UserID { get; set; }
+        public string Id { get; set; }
         public string Description { get; set; }
+        public string Ip { get; set; }
     }
 }

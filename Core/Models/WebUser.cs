@@ -12,15 +12,7 @@ namespace Data.Models
             this.IdentityId = identityId;
         }
 
-        public WebUser(int id, string userName, string identityId, ICollection<EndPoint> endPoint)
-        {
-            Id = id;
-            UserName = userName;
-            EndPoint = endPoint;
-            IdentityId = identityId;
-        }
-
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string IdentityId { get; set; }
         public string UserName { get; set; }
         public virtual ICollection<EndPoint> EndPoint { get; set; }

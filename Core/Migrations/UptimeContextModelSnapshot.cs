@@ -21,40 +21,42 @@ namespace Data.Migrations
 
             modelBuilder.Entity("Data.Models.Echo", b =>
                 {
-                    b.Property<Guid>("ID")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("EndPointID")
-                        .HasColumnType("int");
+                    b.Property<Guid>("EndPointId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("ID");
+                    b.HasKey("Id");
 
-                    b.HasIndex("EndPointID");
+                    b.HasIndex("EndPointId");
 
                     b.ToTable("Echo");
                 });
 
             modelBuilder.Entity("Data.Models.EndPoint", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserID")
-                        .HasColumnType("int");
+                    b.Property<string>("Ip")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("WebUserId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("ID");
+                    b.Property<Guid?>("WebUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("WebUserId");
 
@@ -63,10 +65,9 @@ namespace Data.Migrations
 
             modelBuilder.Entity("Data.Models.WebUser", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("IdentityId")
                         .HasColumnType("nvarchar(max)");
@@ -279,7 +280,7 @@ namespace Data.Migrations
                 {
                     b.HasOne("Data.Models.EndPoint", null)
                         .WithMany("Echo")
-                        .HasForeignKey("EndPointID")
+                        .HasForeignKey("EndPointId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

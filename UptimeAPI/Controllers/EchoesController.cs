@@ -50,7 +50,7 @@ namespace UptimeAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutEcho(Guid id, Echo echo)
         {
-            if (id != echo.ID)
+            if (id != echo.Id)
             {
                 return BadRequest();
             }
@@ -85,7 +85,7 @@ namespace UptimeAPI.Controllers
             _context.Echo.Add(echo);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetEcho", new { id = echo.ID }, echo);
+            return CreatedAtAction("GetEcho", new { id = echo.Id }, echo);
         }
 
         // DELETE: api/Echoes/5
@@ -106,7 +106,7 @@ namespace UptimeAPI.Controllers
 
         private bool EchoExists(Guid id)
         {
-            return _context.Echo.Any(e => e.ID == id);
+            return _context.Echo.Any(e => e.Id == id);
         }
     }
 }

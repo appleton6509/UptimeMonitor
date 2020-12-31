@@ -4,8 +4,8 @@ namespace Data.Models
 {
     public class Echo
     {
-        public Guid ID { get; set; }
+        public Guid Id { get; set; }
         public DateTime TimeStamp { get; set; }
-        public int EndPointID { get; set; }
+        public Guid EndPointId { get; set; }
     }
 }

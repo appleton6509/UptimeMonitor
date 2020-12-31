@@ -17,7 +17,7 @@ namespace UptimeAPI.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class EndPointsController : ControllerBase
+    public class EndPointsController : APIBaseController
     {
         private readonly IMapper _mapper;
         private readonly UptimeContext _context;
@@ -26,7 +26,7 @@ namespace UptimeAPI.Controllers
         public EndPointsController(
              IMapper mapper
             , UptimeContext context
-            ,UserManager<IdentityUser> userManager)
+            , UserManager<IdentityUser> userManager)
         {
             _mapper = mapper;
             _context = context;
@@ -37,18 +37,15 @@ namespace UptimeAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EndPoint>>> GetEndPoint()
         {
-            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-           // if (!(userId > 0))
-                //return server error
-            
-            var endPoint = await _context.EndPoint.Where(x => x.UserID == Convert.ToInt32(userId)).ToListAsync();
+            Guid userId = UserId();
+            List<EndPoint> endPoint = userId != null ?
+                await _context.EndPoint.Where(x => x.UserId.Equals(userId)).ToListAsync() : new List<EndPoint>() { new EndPoint() };
             return endPoint;
         }
 
         // GET: api/EndPoints/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<EndPoint>> GetEndPoint(int id)
+        public async Task<ActionResult<EndPoint>> GetEndPoint(Guid id)
         {
             //string identityId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             //var userId =  _context.WebUser.Where(x => x.IdentityId.Equals(identityId, StringComparison.OrdinalIgnoreCase)).FirstAsync().Result.Id;
@@ -66,14 +63,17 @@ namespace UptimeAPI.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutEndPoint(int id, EndPoint endPoint)
+        public async Task<IActionResult> PutEndPoint(string id, WebEndPointDTO endPoint)
         {
-            if (id != endPoint.ID)
+            if (String.Compare(id, endPoint.Id) != 0) 
             {
                 return BadRequest();
             }
-
-            _context.Entry(endPoint).State = EntityState.Modified;
+            Guid.TryParse(endPoint.Id, out Guid result);
+            EndPoint ep = _context.EndPoint.Find(result);
+            ep.Description = endPoint.Description;
+            ep.Ip = endPoint.Ip;
+            _context.Entry(ep).State = EntityState.Modified;
 
             try
             {
@@ -100,19 +100,16 @@ namespace UptimeAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<EndPoint>> PostEndPoint(WebEndPointDTO webEndPoint)
         {
-            Int32.TryParse(webEndPoint.UserID, out int id);
-
-            WebUser user = (id > 0) ? _context.WebUser.FindAsync(id).Result : null;
-            if (Object.Equals(user, null))
+            var userId = UserId();
+            if (Object.Equals(userId,null))
                 return BadRequest("user linked to endpoint does not exist");
-            else {
-                EndPoint endPoint = _mapper.Map<WebEndPointDTO, EndPoint>(webEndPoint);
-                endPoint.UserID = user.Id;
-                _context.EndPoint.Add(endPoint);
-                await _context.SaveChangesAsync(); 
 
-                return CreatedAtAction("GetEndPoint", new { id = endPoint.ID }, endPoint);
-            }
+            EndPoint endPoint = _mapper.Map<WebEndPointDTO, EndPoint>(webEndPoint);
+            endPoint.UserId = userId;
+            _context.EndPoint.Add(endPoint);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetEndPoint", new { id = endPoint.Id }, endPoint);
         }
 
         // DELETE: api/EndPoints/5
@@ -131,9 +128,9 @@ namespace UptimeAPI.Controllers
             return endPoint;
         }
 
-        private bool EndPointExists(int id)
+        private bool EndPointExists(string id)
         {
-            return _context.EndPoint.Any(e => e.ID == id);
+            return _context.EndPoint.Any(e => e.Id.ToString() == id);
         }
     }
 }
