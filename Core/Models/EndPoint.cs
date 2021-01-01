@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Data.Models
 {
-    public class EndPoint : IModel
+    public class EndPoint 
     {
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
