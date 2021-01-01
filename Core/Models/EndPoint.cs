@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Data.Models
 {
-    public class EndPoint
+    public class EndPoint : IModel
     {
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
@@ -12,5 +12,9 @@ namespace Data.Models
 
         public virtual ICollection<Echo> Echo { get; set; }
 
+        public string PrimaryKey()
+        {
+            return this.Id.ToString();
+        }
     }
 }

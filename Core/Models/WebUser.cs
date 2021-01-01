@@ -11,7 +11,6 @@ namespace Data.Models
             this.UserName = userName;
             this.IdentityId = identityId;
         }
-
         public Guid Id { get; set; }
         public string IdentityId { get; set; }
         public string UserName { get; set; }

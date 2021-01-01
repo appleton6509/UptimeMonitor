@@ -11,6 +11,7 @@ using Data.DTOs;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
+using UptimeAPI.Messaging;
 
 namespace UptimeAPI.Controllers
 {
@@ -32,37 +33,14 @@ namespace UptimeAPI.Controllers
             _context = context;
             _userManager = userManager;
         }
-
-        [ApiExplorerSettings(IgnoreApi = true)]
-        public Guid UserId()
-        {
-            Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid userId);
-            return userId;
-        }
         // GET: api/EndPoints
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<EndPoint>>> GetEndPoint()
+        public async Task<ActionResult<IEnumerable<EndPoint>>> GetAllEndPoints()
         {
             Guid userId = UserId();
             List<EndPoint> endPoint = userId != null ?
                 await _context.EndPoint.Where(x => x.UserId.Equals(userId)).ToListAsync() : new List<EndPoint>() { new EndPoint() };
             return endPoint;
-        }
-
-        // GET: api/EndPoints/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<EndPoint>> GetEndPoint(Guid id)
-        {
-            //string identityId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            //var userId =  _context.WebUser.Where(x => x.IdentityId.Equals(identityId, StringComparison.OrdinalIgnoreCase)).FirstAsync().Result.Id;
-            //var endPoint = await _context.EndPoint.Where(x => x.UserID == Convert.ToInt32(userId)).ToListAsync();
-
-            //if (endPoint == null)
-            //{
-            //    return NotFound();
-            //}
-
-            return null;
         }
 
         // PUT: api/EndPoints/5
@@ -71,12 +49,14 @@ namespace UptimeAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutEndPoint(string id, WebEndPointDTO endPoint)
         {
-            if (String.Compare(id, endPoint.Id) != 0) 
-            {
-                return BadRequest();
-            }
+            if (!IsMatching(id, endPoint.Id))
+                return BadRequest(Error.HttpRequest[AuthErrors.KeysNoMatch]);
             Guid.TryParse(endPoint.Id, out Guid result);
-            EndPoint ep = _context.EndPoint.Find(result);
+            EndPoint ep = result != null ? _context.EndPoint.Find(result) : null;
+
+            if (!OwnsModel(ep.UserId))
+                return BadRequest(Error.HttpRequest[AuthErrors.NoResourceAccess]);
+
             ep.Description = endPoint.Description;
             ep.Ip = endPoint.Ip;
             _context.Entry(ep).State = EntityState.Modified;
@@ -106,12 +86,8 @@ namespace UptimeAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<EndPoint>> PostEndPoint(WebEndPointDTO webEndPoint)
         {
-            var userId = UserId();
-            if (Object.Equals(userId,null))
-                return BadRequest("user linked to endpoint does not exist");
-
             EndPoint endPoint = _mapper.Map<WebEndPointDTO, EndPoint>(webEndPoint);
-            endPoint.UserId = userId;
+            endPoint.UserId = UserId();
             _context.EndPoint.Add(endPoint);
             await _context.SaveChangesAsync();
 
@@ -120,13 +96,14 @@ namespace UptimeAPI.Controllers
 
         // DELETE: api/EndPoints/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<EndPoint>> DeleteEndPoint(int id)
+        public async Task<ActionResult<EndPoint>> DeleteEndPoint(string id)
         {
-            var endPoint = await _context.EndPoint.FindAsync(id);
-            if (endPoint == null)
-            {
+            Guid.TryParse(id, out Guid result);
+            var endPoint = await _context.EndPoint.FindAsync(result);
+            if (Object.Equals(endPoint,null))
                 return NotFound();
-            }
+            else if (!OwnsModel(endPoint.UserId))
+                return BadRequest(Error.HttpRequest[AuthErrors.NoResourceAccess]);
 
             _context.EndPoint.Remove(endPoint);
             await _context.SaveChangesAsync();
