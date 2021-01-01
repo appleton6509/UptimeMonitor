@@ -6,6 +6,9 @@ namespace Data.Models
     {
         public Guid Id { get; set; }
         public DateTime TimeStamp { get; set; }
+        public int StatusCode { get; set; }
+        public int Latency { get; set; }
+        public string StatusMessage { get; set; }
         public Guid EndPointId { get; set; }
     }
 }

@@ -13,5 +13,6 @@ namespace Data
         public DbSet<Echo> Echo { get; set; }
         public DbSet<EndPoint> EndPoint { get; set; }
         public DbSet<WebUser> WebUser { get; set; }
+
     }
 }

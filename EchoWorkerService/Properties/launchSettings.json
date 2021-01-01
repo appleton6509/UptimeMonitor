@@ -1,0 +1,10 @@
+﻿{
+  "profiles": {
+    "EchoWorkerService": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

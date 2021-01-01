@@ -1,0 +1,43 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+
+
+namespace EchoWorkerService.Models
+{
+    public static class Validator
+    {
+        /// <summary>
+        /// A regex value for validating IP address format
+        /// </summary
+        private static readonly Regex IpAddressRegex = new Regex("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$");
+
+        /// <summary>
+        /// a regex value for validating DNS format
+        /// </summary>
+        private static readonly Regex HostNameRegex = new Regex("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$");
+
+        public static readonly Dictionary<string, string> Errors = new Dictionary<string, string>()
+        {
+            {"EmptyAddress","Please enter an IP or DNS" },
+            {"InvalidAddress","Enter a valid IP address or DNS" },
+        };
+
+        /// <summary>
+        /// Checks if the format of an IP or DNS is correct
+        /// </summary>
+        /// <param name="ipOrDNS">Ip address or DNS</param>
+        /// <returns></returns>
+        public static bool IsValidAddress(string ipOrDNS)
+        {
+            string address = ipOrDNS;
+
+            if (String.IsNullOrEmpty(address))
+                return false;
+            else if (IpAddressRegex.IsMatch(address) || HostNameRegex.IsMatch(address))
+                return true;
+            else
+                return false;
+        } 
+    }
+}
