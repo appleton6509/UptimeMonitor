@@ -10,7 +10,7 @@ namespace Data.Models
         public string Description { get; set; }
         public string Ip { get; set; }
 
-        public virtual ICollection<Echo> Echo { get; set; }
+        public virtual ICollection<HttpResult> Http { get; set; }
 
         public string PrimaryKey()
         {

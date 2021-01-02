@@ -1,27 +1,31 @@
 using Data;
 using Data.Models;
-using EchoWorkerService.Models;
-using EchoWorkerService.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ProcessingService.Models;
+using ProcessingService.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EchoWorkerService
+namespace ProcessingService
 {
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
         private readonly IServiceScopeFactory _scopeFactory;
-
+        /// <summary>
+        /// interval (in milliseconds) between running of app
+        /// </summary>
+        private readonly int _intervalBetweenPing;
         /// <summary>
         /// Number of service workers that will run simultaneously
         /// </summary>
-        private int NumberOfWorkers { get; set; } = 5;
+        private int NumberOfWorkers { get; set; } = 100;
 
         public Worker(ILogger<Worker> logger, IServiceScopeFactory scope)
         {
@@ -34,9 +38,9 @@ namespace EchoWorkerService
             while (!stoppingToken.IsCancellationRequested)
             {
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                await StartWork();
+                   await StartWork();
                 _logger.LogInformation("Worker done at: {time}", DateTimeOffset.Now);
-                await Task.Delay(60000, stoppingToken);
+                await Task.Delay(10000, stoppingToken);
             }
         }
 
@@ -54,18 +58,18 @@ namespace EchoWorkerService
             {
                 notDone = tasks.All(x => x.IsCompleted);
                 _logger.LogInformation("Waiting for tasks to finish, number left: " + tasks.Count, DateTimeOffset.Now);
-                await Task.Delay(1000);
+                await Task.Delay(60000);
             }
         }
 
-        private void AddToDatabase(Echo result)
+        private void AddToDatabase(HttpResult result)
         {
             if (Object.Equals(result,null))
                 return;
 
             using var scope = _scopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<UptimeContext>();
-            dbContext.Echo.Add(result);
+            dbContext.HttpResult.Add(result);
             dbContext.SaveChanges();
         }
 
@@ -92,30 +96,30 @@ namespace EchoWorkerService
                     taskCount = tasks.Count;
                 }
                 if (tasks.Count < NumberOfWorkers)
-                    tasks.Add(Task.Run(() =>
-                    {
-                        using var scope = _scopeFactory.CreateScope();
-                        var ping = scope.ServiceProvider.GetRequiredService<PingService>();
-                        ping.AddressOrIp = ep.Ip;
-                        Echo echo = MapResult(ping.StartPingAsync().Result, ep);
-                        AddToDatabase(echo);
-                    }));
+                        tasks.Add(Task.Run(() =>
+                        {
+                            using var scope = _scopeFactory.CreateScope();
+                            var http = scope.ServiceProvider.GetRequiredService<HttpService>();
+                            http.SetHostName(ep.Ip);
+                            HttpResult result = MapResult(http.CheckConnection(), ep);
+                            AddToDatabase(result);
+                        }));
             }
         }
 
-        private Echo MapResult(PingResult result, EndPoint ep)
+        private HttpResult MapResult(HttpResponseResult result, EndPoint ep)
         {
             if (Object.Equals(result, null)) return null;
 
-            Echo echo = new Echo()
+            HttpResult http = new HttpResult()
             {
                 EndPointId = ep.Id,
                 Latency = result.Latency,
-                StatusCode = result.StatusCode,
-                StatusMessage = (result.ErrorMessage),
+                IsReachable = result.IsReachable,
+                StatusMessage = result.StatusMessage,
                 TimeStamp = DateTime.Now
             };
-            return echo;
+            return http;
         }
     }
 }
