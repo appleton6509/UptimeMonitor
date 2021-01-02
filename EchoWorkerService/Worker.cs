@@ -43,42 +43,30 @@ namespace EchoWorkerService
         private async Task StartWork()
         {
             List<Task> tasks = new List<Task>();
-            List<Echo> results = new List<Echo>();
-            CreateTasks(tasks, results);
-            await WaitForProcessResults(tasks,results);
+            CreateTasks(tasks);
+            await WaitForProcessResults(tasks);
         }
 
-        private async Task WaitForProcessResults(List<Task> tasks, List<Echo> results)
+        private async Task WaitForProcessResults(List<Task> tasks)
         {
-            int taskCount = tasks.Count;
-            while (taskCount > 0)
+            bool notDone = true;
+            while (notDone)
             {
-                tasks.RemoveAll(x => x.IsCompleted);
-                _logger.LogInformation("Waiting for tasks to finish, number left: " + taskCount, DateTimeOffset.Now);
+                notDone = tasks.All(x => x.IsCompleted);
+                _logger.LogInformation("Waiting for tasks to finish, number left: " + tasks.Count, DateTimeOffset.Now);
                 await Task.Delay(1000);
-                taskCount = tasks.Count;
-            }
-            int resultCount = results.Count;
-            while (resultCount > 0)
-            {
-                _logger.LogInformation("Waiting for results to finish processing, number left: "+ resultCount, DateTimeOffset.Now);
-                AddToDatabase(results);
-                await Task.Delay(1000);
-                resultCount = results.Count;
             }
         }
 
-        private void AddToDatabase(List<Echo> results)
+        private void AddToDatabase(Echo result)
         {
-            if (results.Count <= 0)
+            if (Object.Equals(result,null))
                 return;
 
             using var scope = _scopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<UptimeContext>();
-            Echo[] copy = results.ToArray();
-            dbContext.AddRange(copy);
+            dbContext.Echo.Add(result);
             dbContext.SaveChanges();
-            results.RemoveAll(x => copy.Contains(x));
         }
 
         private List<EndPoint> GetEndPoints()
@@ -88,7 +76,7 @@ namespace EchoWorkerService
             return dbContext.EndPoint.ToList();
         }
 
-        private void CreateTasks(List<Task> tasks, List<Echo> results)
+        private void CreateTasks(List<Task> tasks)
         {
             List<EndPoint> data = GetEndPoints();
             _logger.LogInformation("Endpoint count: " + data.Count, DateTimeOffset.Now);
@@ -109,9 +97,9 @@ namespace EchoWorkerService
                         using var scope = _scopeFactory.CreateScope();
                         var ping = scope.ServiceProvider.GetRequiredService<PingService>();
                         ping.AddressOrIp = ep.Ip;
-                        results.Add(MapResult(ping.StartPingAsync().Result, ep));
+                        Echo echo = MapResult(ping.StartPingAsync().Result, ep);
+                        AddToDatabase(echo);
                     }));
-                AddToDatabase(results);
             }
         }
 
