@@ -107,7 +107,7 @@ namespace ProcessingService
             }
         }
 
-        private HttpResult MapResult(HttpResponseResult result, EndPoint ep)
+        private HttpResult MapResult(ResponseResult result, EndPoint ep)
         {
             if (Object.Equals(result, null)) return null;
 

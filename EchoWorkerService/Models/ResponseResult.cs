@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ProcessingService.Models
 {
-    public class HttpResponseResult
+    public class ResponseResult
     {
         public DateTime TimeStamp { get; set; }
         public bool IsReachable { get; set; }

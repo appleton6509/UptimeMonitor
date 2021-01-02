@@ -1,13 +1,11 @@
 ﻿using ProcessingService.Models;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
-using System.Text;
 
 namespace ProcessingService.Services
 {
-    public class HttpService
+    public class HttpService : IProcessor
     {
         private string _host;
         public string Host { 
@@ -28,9 +26,9 @@ namespace ProcessingService.Services
             return true;
         }
 
-        public HttpResponseResult CheckConnection()
+        public ResponseResult CheckConnection()
         {
-            HttpResponseResult result = new HttpResponseResult();
+            ResponseResult result = new ResponseResult();
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Host);
             try
             {
