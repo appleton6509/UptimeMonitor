@@ -10,11 +10,7 @@ namespace Data.Models
         public string Description { get; set; }
         public string Ip { get; set; }
 
-        public virtual ICollection<HttpResult> Http { get; set; }
+        public virtual ICollection<HttpResult> HttpResult { get; set; }
 
-        public string PrimaryKey()
-        {
-            return this.Id.ToString();
-        }
     }
 }

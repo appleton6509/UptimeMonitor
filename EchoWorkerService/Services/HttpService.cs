@@ -24,7 +24,7 @@ namespace ProcessingService.Services
                 host = String.Concat("http://", hostname);
             this._host = host;
             return true;
-        }
+        } 
 
         public ResponseResult CheckConnection()
         {
