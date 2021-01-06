@@ -60,7 +60,7 @@ namespace UptimeAPI.Controllers
         public async Task<IActionResult> SignIn(WebUserDTO userDTO)
         {
 
-            IdentityUser user = await _userManager.FindByNameAsync(userDTO.Username);
+            IdentityUser user = await  _userManager.FindByNameAsync(userDTO.Username);
             if (Object.Equals(user,null))
                 return BadRequest("incorrect user name");
 

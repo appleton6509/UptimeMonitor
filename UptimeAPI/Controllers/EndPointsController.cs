@@ -33,6 +33,7 @@ namespace UptimeAPI.Controllers
             _context = context;
             _userManager = userManager;
         }
+
         // GET: api/EndPoints
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EndPoint>>> GetAllEndPoints()
