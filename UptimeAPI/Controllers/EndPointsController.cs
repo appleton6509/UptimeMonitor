@@ -12,6 +12,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using UptimeAPI.Messaging;
+using UptimeAPI.Controllers.QueryParams;
 
 namespace UptimeAPI.Controllers
 {
@@ -110,29 +111,6 @@ namespace UptimeAPI.Controllers
             await _context.SaveChangesAsync();
 
             return endPoint;
-        }
-
-        [HttpGet]
-        [Route("Logs")]
-        public async Task<ActionResult<object>> GetWebRequestLogs()
-        {
-            var query =
-                from ep in _context.EndPoint
-                join ht in _context.HttpResult
-                on ep.Id equals ht.EndPointId
-                orderby ht.TimeStamp descending
-                select new
-                {
-                    Ip = ep.Ip,
-                    IsReachable = ht.IsReachable,
-                    Description = ep.Description,
-                    Id = ep.Id,
-                    Latency = ht.Latency,
-                    Status = ht.StatusMessage,
-                    TimeStamp = ht.TimeStamp
-                };
-            var value = await query.ToListAsync();
-            return value;
         }
 
         private bool EndPointExists(string id)
