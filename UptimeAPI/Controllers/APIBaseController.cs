@@ -26,9 +26,10 @@ namespace UptimeAPI.Controllers
                 return true;
             return false;
         }
+        [ApiExplorerSettings(IgnoreApi = true)]
         internal bool IsMatching(string id1, string id2)
         {
-            if (String.Compare(id1.ToLower().Trim(), id2.ToLower().Trim()) != 0)
+            if (id1.Trim().Equals(id2.Trim(),StringComparison.OrdinalIgnoreCase))
                 return true;
             return false;
         }
