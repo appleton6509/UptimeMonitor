@@ -77,7 +77,11 @@ namespace UptimeAPI
             //Cors policy 
             services.AddCors(options =>
             {
-                options.AddPolicy(AppCorsPolicy, builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+                options.AddPolicy(AppCorsPolicy, builder =>
+                builder.AllowAnyOrigin().
+                AllowAnyHeader().
+                AllowAnyMethod()
+                .WithExposedHeaders("X-Pagination"));
             });
 
         }

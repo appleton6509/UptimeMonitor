@@ -20,7 +20,7 @@ namespace UptimeAPI.Controllers.QueryParams
         Description,
         Reachable
     }
-    public class LogFilter
+    public class ResultFilterParam
     {
         public bool? Reachable { get; set; }
         public OrderBy OrderBy { get; set; } = OrderBy.None;

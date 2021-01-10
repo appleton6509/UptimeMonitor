@@ -4,10 +4,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using UptimeAPI.Controllers.DTOs;
+using UptimeAPI.Controllers.Helper;
 using UptimeAPI.Controllers.QueryParams;
 
 namespace UptimeAPI.Controllers
@@ -32,14 +35,14 @@ namespace UptimeAPI.Controllers
         }
         [HttpGet]
         [Route("Logs")]
-        public async Task<ActionResult<object>> GetWebRequestLogs([FromQuery] LogFilter filter)
+        public async Task<ActionResult<object>> GetWebRequestLogs([FromQuery] ResultFilterParam filter, [FromQuery] PaginationParam page)
         {
             var query =
                 from ep in _context.EndPoint
                 join ht in _context.HttpResult
                 on ep.Id equals ht.EndPointId
                 orderby ht.TimeStamp descending
-                select new
+                select new EndPointDetailsDTO()
                 {
                     Ip = ep.Ip,
                     IsReachable = ht.IsReachable,
@@ -50,59 +53,17 @@ namespace UptimeAPI.Controllers
                     TimeStamp = ht.TimeStamp
                 };
 
-            if (filter.Reachable.HasValue)
-                query = query.Where(x => x.IsReachable == filter.Reachable.Value);
+            var filteredQuery = new ResultFilterRules(filter, query).ApplyFilters();
 
-            if (filter.OrderBy == OrderBy.Descending)
+            if (page.RequestedPage > 0 & page.MaxPageSize > 0)
             {
-                switch (filter.SortBy)
-                {
-                    case SortBy.Description:
-                        query = query.OrderByDescending(x => x.Description);
-                        break;
-                    case SortBy.Latency:
-                        query = query.OrderByDescending(x => x.Latency);
-                        break;
-                    case SortBy.Reachable:
-                        query = query.OrderByDescending(x => x.IsReachable);
-                        break;
-                    case SortBy.Site:
-                        query = query.OrderByDescending(x => x.Ip);
-                        break;
-                    case SortBy.Timestamp:
-                        query = query.OrderByDescending(x => x.TimeStamp);
-                        break;
-                    default:
-                        query = query.OrderByDescending(x => x.TimeStamp);
-                        break;
-                }
+                var pagedList = PagedList<EndPointDetailsDTO>.ToPagedList(filteredQuery, page);
+                Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(pagedList.Pagination));
+                return pagedList;
             }
-            if (filter.OrderBy == OrderBy.Ascending)
-            {
-                switch (filter.SortBy)
-                {
-                    case SortBy.Description:
-                        query = query.OrderBy(x => x.Description);
-                        break;
-                    case SortBy.Latency:
-                        query = query.OrderBy(x => x.Latency);
-                        break;
-                    case SortBy.Reachable:
-                        query = query.OrderBy(x => x.IsReachable);
-                        break;
-                    case SortBy.Site:
-                        query = query.OrderBy(x => x.Ip);
-                        break;
-                    case SortBy.Timestamp:
-                        query = query.OrderBy(x => x.TimeStamp);
-                        break;
-                    default:
-                        query = query.OrderBy(x => x.TimeStamp);
-                        break;
-                }
-            }
-            var value = await query.ToListAsync();
-            return value;
+            else
+                return await filteredQuery.ToListAsync();
+
         }
     }
 }
