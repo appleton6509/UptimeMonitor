@@ -20,6 +20,7 @@ namespace UptimeAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class EndPointsController : ApiBaseController
     {
         private readonly IMapper _mapper;
@@ -165,35 +166,43 @@ namespace UptimeAPI.Controllers
 
         //api/EndPoints/Statistics/5DFBBC20-D61E-4506-58DE-08D8B0516C01
         [HttpGet("Statistics/{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<EndPointStatisticsDTO>> GetEndPointStatistics(string id)
         {
             Guid userId = UserId();
             Guid.TryParse(id, out Guid result);
             var endPoint = await _context.EndPoint.FindAsync(result);
 
-            AuthorizationResult auth = await _authorizeService.AuthorizeAsync(User, endPoint, Operations.Update);
-            if (!auth.Succeeded)
-                return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
+            //AuthorizationResult auth = await _authorizeService.AuthorizeAsync(User, endPoint, Operations.Update);
+            //if (!auth.Succeeded)
+            //    return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
 
             var query = from ep in _context.EndPoint
                         join ht in _context.HttpResult
                         on ep.Id equals ht.EndPointId
                         where ep.Id == endPoint.Id
-                        where ep.UserId == userId
                         orderby ht.TimeStamp descending
                         select ht;
 
             DateTime timeNow = DateTime.UtcNow.AddMinutes(-15);
-            double avgLatency = await query.Where(x => DateTime.Compare(x.TimeStamp, timeNow) >= 0).AverageAsync(x => x.Latency);
-
-            EndPointStatisticsDTO data = new EndPointStatisticsDTO()
+            double? avgLatency = null;
+            try
             {
-                AverageLatency = Convert.ToInt32(Math.Round(avgLatency, 0))
-            };
+                avgLatency = await query.Where(x => DateTime.Compare(x.TimeStamp, timeNow) >= 0).AverageAsync(x => x.Latency);
+            } catch { }
+
 
             DateTime? lastDownTime = query.FirstOrDefaultAsync(x => x.IsReachable == false).Result.TimeStamp;
             DateTime? lastSeen = query.FirstOrDefaultAsync(x => x.IsReachable == true).Result.TimeStamp;
-            return Ok();
+            EndPointStatisticsDTO data = new EndPointStatisticsDTO()
+            {
+                AverageLatency = avgLatency != null ? Convert.ToInt32(Math.Round((double)avgLatency, 0)) : 0,
+                LastDownTime = lastDownTime,
+                LastSeen = lastSeen,
+                Ip = endPoint.Ip,
+                Description = endPoint.Description
+            };
+            return data;
         }
 
         private bool EndPointExists(string id)

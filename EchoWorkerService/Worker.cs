@@ -117,7 +117,7 @@ namespace ProcessingService
                 Latency = result.Latency,
                 IsReachable = result.IsReachable,
                 StatusMessage = result.StatusMessage,
-                TimeStamp = DateTime.Now
+                TimeStamp = DateTime.UtcNow
             };
             return http;
         }
