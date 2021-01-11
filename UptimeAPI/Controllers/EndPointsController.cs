@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using UptimeAPI.Messaging;
 using UptimeAPI.Controllers.QueryParams;
+using UptimeAPI.Controllers.DTOs;
 
 namespace UptimeAPI.Controllers
 {
@@ -45,7 +46,7 @@ namespace UptimeAPI.Controllers
             return endPoint;
         }
 
-        // PUT: api/EndPoints/5
+        // PUT: api/EndPoints/5DFBBC20-D61E-4506-58DE-08D8B0516C01
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
@@ -96,7 +97,7 @@ namespace UptimeAPI.Controllers
             return CreatedAtAction("GetEndPoint", new { id = endPoint.Id }, endPoint);
         }
 
-        // DELETE: api/EndPoints/5
+        // DELETE: api/EndPoints/5DFBBC20-D61E-4506-58DE-08D8B0516C01
         [HttpDelete("{id}")]
         public async Task<ActionResult<EndPoint>> DeleteEndPoint(string id)
         {
@@ -104,13 +105,85 @@ namespace UptimeAPI.Controllers
             var endPoint = await _context.EndPoint.FindAsync(result);
             if (Object.Equals(endPoint, null))
                 return NotFound();
-            else if (!OwnsModel(endPoint.UserId))
+            if (!OwnsModel(endPoint.UserId))
                 return BadRequest(Error.HttpRequest[AuthErrors.NoResourceAccess]);
 
             _context.EndPoint.Remove(endPoint);
             await _context.SaveChangesAsync();
 
             return endPoint;
+        }
+
+        [HttpGet]
+        [Route("Offline")]
+        public async Task<ActionResult<object>> Offline()
+        {
+            var query =
+                from ep in _context.EndPoint
+                join ht in _context.HttpResult
+                on ep.Id equals ht.EndPointId
+                orderby ht.TimeStamp descending
+                select new
+                {
+                    Ip = ep.Ip,
+                    IsReachable = ht.IsReachable,
+                    Description = ep.Description,
+                    Id = ep.Id
+                };
+            var totalEndPoints = _context.EndPoint.Select(x => x.Ip).Distinct().Count();
+            return query.Take(totalEndPoints).ToList().Where(x => !x.IsReachable).Distinct().ToList();
+        }
+
+        [HttpGet]
+        [Route("ConnectionStatus")]
+        // GET: api/Dashboard/ConnectionStatus
+        //create a list containing all of the endpoints latest webrequest results.
+        public async Task<ActionResult<object>> CurrentOnlineOffline()
+        {
+            var query =
+                from ep in _context.EndPoint
+                join ht in _context.HttpResult
+                on ep.Id equals ht.EndPointId
+                orderby ht.TimeStamp descending
+                select new
+                {
+                    Ip = ep.Ip,
+                    TimeStamp = ht.TimeStamp,
+                    IsReachable = ht.IsReachable
+                };
+            var totalEndPoints = _context.EndPoint.Select(x => x.Ip).Distinct().Count();
+            return query.Take(totalEndPoints).ToList();
+        }
+
+        //api/EndPoints/Statistics/5DFBBC20-D61E-4506-58DE-08D8B0516C01
+        [HttpGet("Statistics/{id}")]
+        public async Task<ActionResult<EndPointStatisticsDTO>> GetEndPointStatistics(string id)
+        {
+            Guid.TryParse(id, out Guid result);
+            var endPoint = await _context.EndPoint.FindAsync(result);
+            if (Object.Equals(endPoint, null))
+                return NotFound();
+            if (!OwnsModel(endPoint.UserId))
+                return BadRequest(Error.HttpRequest[AuthErrors.NoResourceAccess]);
+
+            var query = from ep in _context.EndPoint
+                        join ht in _context.HttpResult
+                        on ep.Id equals ht.EndPointId
+                        where ep.Id == endPoint.Id
+                        orderby ht.TimeStamp descending
+                        select ht;
+
+            DateTime timeNow = DateTime.UtcNow.AddMinutes(-15);
+            double avgLatency = await query.Where(x => DateTime.Compare(x.TimeStamp, timeNow) >= 0).AverageAsync(x => x.Latency);
+
+            EndPointStatisticsDTO data = new EndPointStatisticsDTO()
+            {
+                AverageLatency = Convert.ToInt32(Math.Round(avgLatency, 0))
+            };
+
+            DateTime? lastDownTime = query.FirstOrDefaultAsync(x => x.IsReachable == false).Result.TimeStamp;
+            DateTime? lastSeen = query.FirstOrDefaultAsync(x => x.IsReachable == true).Result.TimeStamp;
+            return Ok();
         }
 
         private bool EndPointExists(string id)

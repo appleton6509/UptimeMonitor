@@ -15,7 +15,7 @@ using UptimeAPI.Controllers.QueryParams;
 
 namespace UptimeAPI.Controllers
 {
-    [Route("/api/Result")]
+    [Route("api/[controller]")]
     [Authorize]
     [ApiController]
     public class ResultController : Controller

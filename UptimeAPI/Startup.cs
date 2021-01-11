@@ -60,13 +60,13 @@ namespace UptimeAPI
             {
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-                .AddJwtBearer(options => options.TokenValidationParameters = new TokenValidationParameters()
-                {
-                    ValidIssuer = jwtSettings.Issuer,
-                    ValidAudience = jwtSettings.Issuer,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
-                });
+            }).AddJwtBearer(options => options.TokenValidationParameters = new TokenValidationParameters()
+            {
+                ValidIssuer = jwtSettings.Issuer,
+                ValidAudience = jwtSettings.Issuer,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
+            });
+
 
             //Register swagger 
             services.AddSwaggerGen(doc =>
@@ -78,9 +78,9 @@ namespace UptimeAPI
             services.AddCors(options =>
             {
                 options.AddPolicy(AppCorsPolicy, builder =>
-                builder.AllowAnyOrigin().
-                AllowAnyHeader().
-                AllowAnyMethod()
+                builder.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod()
                 .WithExposedHeaders("X-Pagination"));
             });
 
@@ -119,8 +119,6 @@ namespace UptimeAPI
             {
                 endpoints.MapControllers();
             });
-
-
         }
     }
 }
