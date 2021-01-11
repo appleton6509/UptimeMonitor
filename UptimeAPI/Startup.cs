@@ -13,6 +13,9 @@ using Microsoft.IdentityModel.Tokens;
 using UptimeAPI.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
+using Microsoft.AspNetCore.Authorization;
+using UptimeAPI.Services;
 
 namespace UptimeAPI
 {
@@ -67,6 +70,12 @@ namespace UptimeAPI
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
             });
 
+            //user authorization to resource
+            services.AddAuthorization(options=>
+            {
+                options.AddPolicy(nameof(Operations), policy => policy.Requirements.Add(new OperationAuthorizationRequirement()));
+            });
+            services.AddSingleton<IAuthorizationHandler, UserOwnsResourceAuthorizationHandler>();
 
             //Register swagger 
             services.AddSwaggerGen(doc =>

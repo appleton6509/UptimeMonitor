@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Data;
 using Data.Models;
-using Microsoft.AspNetCore.Authorization;
 using Data.DTOs;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
@@ -14,23 +13,27 @@ using System.Security.Claims;
 using UptimeAPI.Messaging;
 using UptimeAPI.Controllers.QueryParams;
 using UptimeAPI.Controllers.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using UptimeAPI.Services;
 
 namespace UptimeAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class EndPointsController : ApiBaseController
     {
         private readonly IMapper _mapper;
         private readonly UptimeContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly IAuthorizationService _authorizeService;
 
         public EndPointsController(
              IMapper mapper
+            , IAuthorizationService authorizeService
             , UptimeContext context
             , UserManager<IdentityUser> userManager)
         {
+            _authorizeService = authorizeService;
             _mapper = mapper;
             _context = context;
             _userManager = userManager;
@@ -52,13 +55,13 @@ namespace UptimeAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutEndPoint(string id, WebEndPointDTO endPoint)
         {
-            if (!IsMatching(id, endPoint.Id))
-                return BadRequest(Error.HttpRequest[AuthErrors.KeysNoMatch]);
             Guid.TryParse(endPoint.Id, out Guid result);
             EndPoint ep = result != null ? _context.EndPoint.Find(result) : null;
 
-            if (!OwnsModel(ep.UserId))
-                return BadRequest(Error.HttpRequest[AuthErrors.NoResourceAccess]);
+            AuthorizationResult auth = await _authorizeService.AuthorizeAsync(User, ep, Operations.Update);
+            if (!auth.Succeeded)
+                return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
+
 
             ep.Description = endPoint.Description;
             ep.Ip = endPoint.Ip;
@@ -103,10 +106,11 @@ namespace UptimeAPI.Controllers
         {
             Guid.TryParse(id, out Guid result);
             var endPoint = await _context.EndPoint.FindAsync(result);
-            if (Object.Equals(endPoint, null))
-                return NotFound();
-            if (!OwnsModel(endPoint.UserId))
-                return BadRequest(Error.HttpRequest[AuthErrors.NoResourceAccess]);
+
+            AuthorizationResult auth = await _authorizeService.AuthorizeAsync(User, endPoint, Operations.Delete);
+            if (!auth.Succeeded)
+                return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
+
 
             _context.EndPoint.Remove(endPoint);
             await _context.SaveChangesAsync();
@@ -118,19 +122,21 @@ namespace UptimeAPI.Controllers
         [Route("Offline")]
         public async Task<ActionResult<object>> Offline()
         {
+            Guid userId = UserId();
             var query =
                 from ep in _context.EndPoint
                 join ht in _context.HttpResult
                 on ep.Id equals ht.EndPointId
+                where ep.UserId == userId
                 orderby ht.TimeStamp descending
                 select new
                 {
-                    Ip = ep.Ip,
-                    IsReachable = ht.IsReachable,
-                    Description = ep.Description,
-                    Id = ep.Id
+                    ep.Ip,
+                    ht.IsReachable,
+                     ep.Description,
+                    ep.Id
                 };
-            var totalEndPoints = _context.EndPoint.Select(x => x.Ip).Distinct().Count();
+            var totalEndPoints = _context.EndPoint.Where(x=>x.UserId == userId).Select(x => x.Ip).Distinct().Count();
             return query.Take(totalEndPoints).ToList().Where(x => !x.IsReachable).Distinct().ToList();
         }
 
@@ -140,18 +146,20 @@ namespace UptimeAPI.Controllers
         //create a list containing all of the endpoints latest webrequest results.
         public async Task<ActionResult<object>> CurrentOnlineOffline()
         {
+            Guid userId = UserId();
             var query =
                 from ep in _context.EndPoint
                 join ht in _context.HttpResult
                 on ep.Id equals ht.EndPointId
+                where ep.UserId == userId
                 orderby ht.TimeStamp descending
                 select new
                 {
-                    Ip = ep.Ip,
-                    TimeStamp = ht.TimeStamp,
-                    IsReachable = ht.IsReachable
+                    ep.Ip,
+                    ht.TimeStamp,
+                    ht.IsReachable
                 };
-            var totalEndPoints = _context.EndPoint.Select(x => x.Ip).Distinct().Count();
+            var totalEndPoints = _context.EndPoint.Where(x=> x.UserId == userId).Select(x => x.Ip).Distinct().Count();
             return query.Take(totalEndPoints).ToList();
         }
 
@@ -159,17 +167,19 @@ namespace UptimeAPI.Controllers
         [HttpGet("Statistics/{id}")]
         public async Task<ActionResult<EndPointStatisticsDTO>> GetEndPointStatistics(string id)
         {
+            Guid userId = UserId();
             Guid.TryParse(id, out Guid result);
             var endPoint = await _context.EndPoint.FindAsync(result);
-            if (Object.Equals(endPoint, null))
-                return NotFound();
-            if (!OwnsModel(endPoint.UserId))
-                return BadRequest(Error.HttpRequest[AuthErrors.NoResourceAccess]);
+
+            AuthorizationResult auth = await _authorizeService.AuthorizeAsync(User, endPoint, Operations.Update);
+            if (!auth.Succeeded)
+                return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
 
             var query = from ep in _context.EndPoint
                         join ht in _context.HttpResult
                         on ep.Id equals ht.EndPointId
                         where ep.Id == endPoint.Id
+                        where ep.UserId == userId
                         orderby ht.TimeStamp descending
                         select ht;
 

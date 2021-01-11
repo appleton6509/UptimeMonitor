@@ -18,7 +18,7 @@ namespace UptimeAPI.Controllers
     [Route("api/[controller]")]
     [Authorize]
     [ApiController]
-    public class ResultController : Controller
+    public class ResultController : ApiBaseController
     {
         private readonly IMapper _mapper;
         private readonly UptimeContext _context;
@@ -37,10 +37,12 @@ namespace UptimeAPI.Controllers
         [Route("Logs")]
         public async Task<ActionResult<object>> GetWebRequestLogs([FromQuery] ResultFilterParam filter, [FromQuery] PaginationParam page)
         {
+            Guid userId = UserId();
             var query =
                 from ep in _context.EndPoint
                 join ht in _context.HttpResult
                 on ep.Id equals ht.EndPointId
+                where ep.UserId == userId
                 orderby ht.TimeStamp descending
                 select new EndPointDetailsDTO()
                 {
