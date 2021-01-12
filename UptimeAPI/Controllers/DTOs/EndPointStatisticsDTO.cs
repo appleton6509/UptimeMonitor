@@ -12,6 +12,7 @@ namespace UptimeAPI.Controllers.DTOs
         public DateTime? LastSeen { get; set; }
         public string Ip { get; set; }
         public string Description { get; set; }
+        public bool IsReachable { get; set; }
 
     }
 }

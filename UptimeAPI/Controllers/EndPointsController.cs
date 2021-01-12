@@ -166,17 +166,42 @@ namespace UptimeAPI.Controllers
 
         //api/EndPoints/Statistics/5DFBBC20-D61E-4506-58DE-08D8B0516C01
         [HttpGet("Statistics/{id}")]
-        [AllowAnonymous]
+        //[AllowAnonymous]
         public async Task<ActionResult<EndPointStatisticsDTO>> GetEndPointStatistics(string id)
         {
             Guid userId = UserId();
             Guid.TryParse(id, out Guid result);
             var endPoint = await _context.EndPoint.FindAsync(result);
 
-            //AuthorizationResult auth = await _authorizeService.AuthorizeAsync(User, endPoint, Operations.Update);
-            //if (!auth.Succeeded)
-            //    return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
+            AuthorizationResult auth = await _authorizeService.AuthorizeAsync(User, endPoint, Operations.Update);
+            if (!auth.Succeeded)
+                return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
 
+            return GetEndPointStatistics(endPoint);
+        }
+
+        //api/EndPoints/Statistics
+        [HttpGet]
+        [Route("Statistics")]
+        public ActionResult<List<EndPointStatisticsDTO>> GetAllEndPointStatistics()
+        {
+            Guid userId = UserId();
+            var endPoints = (from ep in _context.EndPoint
+                                   where ep.UserId == userId
+                                   select ep).ToList();
+            List<EndPointStatisticsDTO> stats = new List<EndPointStatisticsDTO>();
+
+             endPoints.ForEach(x =>
+            {
+                var epstat = GetEndPointStatistics(x);
+                stats.Add(epstat);
+            });
+
+            return stats;
+        }
+
+        private  EndPointStatisticsDTO GetEndPointStatistics(EndPoint endPoint)
+        {
             var query = from ep in _context.EndPoint
                         join ht in _context.HttpResult
                         on ep.Id equals ht.EndPointId
@@ -188,18 +213,21 @@ namespace UptimeAPI.Controllers
             double? avgLatency = null;
             try
             {
-                avgLatency = await query.Where(x => DateTime.Compare(x.TimeStamp, timeNow) >= 0).AverageAsync(x => x.Latency);
-            } catch { }
+                avgLatency = query.Where(x => DateTime.Compare(x.TimeStamp, timeNow) >= 0).Average(x => x.Latency);
+            }
+            catch { }
 
+            bool? isOnline = query.FirstOrDefaultAsync(x => x.IsReachable == true)?.Result?.IsReachable;
 
-            DateTime? lastDownTime = query.FirstOrDefaultAsync(x => x.IsReachable == false).Result.TimeStamp;
-            DateTime? lastSeen = query.FirstOrDefaultAsync(x => x.IsReachable == true).Result.TimeStamp;
+            DateTime? lastDownTime = query.FirstOrDefault(x => x.IsReachable == false)?.TimeStamp;
+            DateTime? lastSeen = query.FirstOrDefault(x => x.IsReachable == true)?.TimeStamp;
             EndPointStatisticsDTO data = new EndPointStatisticsDTO()
             {
                 AverageLatency = avgLatency != null ? Convert.ToInt32(Math.Round((double)avgLatency, 0)) : 0,
                 LastDownTime = lastDownTime,
                 LastSeen = lastSeen,
                 Ip = endPoint.Ip,
+                IsReachable = isOnline ?? false,
                 Description = endPoint.Description
             };
             return data;
