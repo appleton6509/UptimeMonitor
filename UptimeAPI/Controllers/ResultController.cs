@@ -67,5 +67,6 @@ namespace UptimeAPI.Controllers
                 return await filteredQuery.ToListAsync();
 
         }
+        public async Task<ActionResult<>>
     }
 }

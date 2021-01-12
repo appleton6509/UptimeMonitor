@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Data;
 using Data.Models;
-using Data.DTOs;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;

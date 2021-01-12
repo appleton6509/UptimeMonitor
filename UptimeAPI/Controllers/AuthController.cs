@@ -4,12 +4,12 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using AutoMapper;
 using Data;
-using Data.DTOs;
 using Data.Models;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using UptimeAPI.Controllers.DTOs;
 using UptimeAPI.Services;
 using UptimeAPI.Settings;
 

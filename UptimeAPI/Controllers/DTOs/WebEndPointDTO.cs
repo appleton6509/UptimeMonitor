@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
-namespace Data.DTOs
+
+namespace UptimeAPI.Controllers.DTOs
 {
     public class WebEndPointDTO
     {
