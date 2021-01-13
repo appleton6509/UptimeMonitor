@@ -21,7 +21,7 @@ namespace ProcessingService
         /// <summary>
         /// interval (in milliseconds) between running of app
         /// </summary>
-        private readonly int _intervalBetweenPing;
+        private readonly int _intervalBetweenPing = 60000;
         /// <summary>
         /// Number of service workers that will run simultaneously
         /// </summary>
@@ -58,7 +58,8 @@ namespace ProcessingService
             {
                 notDone = tasks.All(x => x.IsCompleted);
                 _logger.LogInformation("Waiting for tasks to finish, number left: " + tasks.Count, DateTimeOffset.Now);
-                await Task.Delay(60000);
+
+                await Task.Delay(_intervalBetweenPing);
             }
         }
 
