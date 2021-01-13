@@ -4,10 +4,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.30611.23
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UptimeAPI", "UptimeAPI\UptimeAPI.csproj", "{8D33508E-EB5A-48E4-BB19-F8F55EA05BF7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{AF6D9AE4-E0C3-45E6-9D6B-FA05D65D3B2A} = {AF6D9AE4-E0C3-45E6-9D6B-FA05D65D3B2A}
+	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data", "Core\Data.csproj", "{AF6D9AE4-E0C3-45E6-9D6B-FA05D65D3B2A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data", "Data\Data.csproj", "{AF6D9AE4-E0C3-45E6-9D6B-FA05D65D3B2A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessingService", "EchoWorkerService\ProcessingService.csproj", "{C799B4B4-3D7F-464C-BF60-1115DC753A28}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessingService", "ProcessingService\ProcessingService.csproj", "{C799B4B4-3D7F-464C-BF60-1115DC753A28}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

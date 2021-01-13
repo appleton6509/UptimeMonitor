@@ -94,8 +94,8 @@ namespace UptimeAPI.Controllers
                         ht.TimeStamp <= range.End
                         orderby ht.TimeStamp ascending
                         select _mapper.Map<HttpResult, HttpResultLatencyDTO>(ht);
-            var query2 = await query.ToListAsync();
-            return query2;
+         
+            return await query.ToListAsync();
         }
     }
 }
