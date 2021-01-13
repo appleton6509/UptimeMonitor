@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
-using Data.DTOs;
 using Data.Models;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using UptimeAPI.Controllers.DTOs;
 
-namespace Data.Mapping
+namespace UptimeAPI.Controllers.Mapping
 {
     public class MappingProfile : Profile
     {
@@ -17,8 +17,8 @@ namespace Data.Mapping
                 .ForMember(u => u.Id, opt => opt.Ignore());
             CreateMap<WebEndPointDTO, EndPoint>()
                 .ForMember(u => u.Id, opt => opt.Ignore());
+            CreateMap<HttpResult, HttpResultLatencyDTO>();
+            CreateMap<HttpResultLatencyDTO,HttpResult>();
         }
-
-
     }
 }

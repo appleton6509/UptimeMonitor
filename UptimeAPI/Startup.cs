@@ -7,7 +7,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Data;
 using AutoMapper;
-using Data.Mapping;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using UptimeAPI.Settings;
@@ -16,6 +15,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using UptimeAPI.Services;
+using UptimeAPI.Controllers.Mapping;
 
 namespace UptimeAPI
 {

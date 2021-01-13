@@ -25,15 +25,15 @@ namespace UptimeAPI.Controllers
         private readonly IMapper _mapper;
         private readonly UptimeContext _context;
         private readonly UserManager<IdentityUser> _userManager;
-        private readonly IAuthorizationService _authorizeService;
+        private readonly IAuthorizationService _authorizationService;
 
         public EndPointsController(
              IMapper mapper
-            , IAuthorizationService authorizeService
+            , IAuthorizationService authorizationService 
             , UptimeContext context
             , UserManager<IdentityUser> userManager)
         {
-            _authorizeService = authorizeService;
+            _authorizationService = authorizationService;
             _mapper = mapper;
             _context = context;
             _userManager = userManager;
@@ -58,7 +58,7 @@ namespace UptimeAPI.Controllers
             Guid.TryParse(endPoint.Id, out Guid result);
             EndPoint ep = result != null ? _context.EndPoint.Find(result) : null;
 
-            AuthorizationResult auth = await _authorizeService.AuthorizeAsync(User, ep, Operations.Update);
+            AuthorizationResult auth = await _authorizationService.AuthorizeAsync(User, ep, Operations.Update);
             if (!auth.Succeeded)
                 return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
 
@@ -107,7 +107,7 @@ namespace UptimeAPI.Controllers
             Guid.TryParse(id, out Guid result);
             var endPoint = await _context.EndPoint.FindAsync(result);
 
-            AuthorizationResult auth = await _authorizeService.AuthorizeAsync(User, endPoint, Operations.Delete);
+            AuthorizationResult auth = await _authorizationService.AuthorizeAsync(User, endPoint, Operations.Delete);
             if (!auth.Succeeded)
                 return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
 
@@ -142,7 +142,7 @@ namespace UptimeAPI.Controllers
 
         [HttpGet]
         [Route("ConnectionStatus")]
-        // GET: api/Dashboard/ConnectionStatus
+        // GET: api/EndPoints/ConnectionStatus
         //create a list containing all of the endpoints latest webrequest results.
         public async Task<ActionResult<object>> CurrentOnlineOffline()
         {
@@ -172,7 +172,7 @@ namespace UptimeAPI.Controllers
             Guid.TryParse(id, out Guid result);
             var endPoint = await _context.EndPoint.FindAsync(result);
 
-            AuthorizationResult auth = await _authorizeService.AuthorizeAsync(User, endPoint, Operations.Update);
+            AuthorizationResult auth = await _authorizationService.AuthorizeAsync(User, endPoint, Operations.Update);
             if (!auth.Succeeded)
                 return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
 
@@ -227,7 +227,8 @@ namespace UptimeAPI.Controllers
                 LastSeen = lastSeen,
                 Ip = endPoint.Ip,
                 IsReachable = isOnline ?? false,
-                Description = endPoint.Description
+                Description = endPoint.Description,
+                Id = endPoint.Id
             };
             return data;
         }

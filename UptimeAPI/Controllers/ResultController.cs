@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Data;
+using Data.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,8 @@ using System.Threading.Tasks;
 using UptimeAPI.Controllers.DTOs;
 using UptimeAPI.Controllers.Helper;
 using UptimeAPI.Controllers.QueryParams;
+using UptimeAPI.Messaging;
+using UptimeAPI.Services;
 
 namespace UptimeAPI.Controllers
 {
@@ -23,19 +26,22 @@ namespace UptimeAPI.Controllers
         private readonly IMapper _mapper;
         private readonly UptimeContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly IAuthorizationService _authorizationService;
 
         public ResultController(
              IMapper mapper
             , UptimeContext context
-            , UserManager<IdentityUser> userManager)
+            , UserManager<IdentityUser> userManager
+            , IAuthorizationService authorizationService)
         {
             _mapper = mapper;
             _context = context;
             _userManager = userManager;
+            _authorizationService = authorizationService;
         }
         [HttpGet]
         [Route("Logs")]
-        public async Task<ActionResult<object>> GetWebRequestLogs([FromQuery] ResultFilterParam filter, [FromQuery] PaginationParam page)
+        public async Task<ActionResult<List<EndPointDetailsDTO>>> GetWebRequestLogs([FromQuery] ResultFilterParam filter, [FromQuery] PaginationParam page)
         {
             Guid userId = UserId();
             var query =
@@ -59,14 +65,37 @@ namespace UptimeAPI.Controllers
 
             if (page.RequestedPage > 0 & page.MaxPageSize > 0)
             {
-                var pagedList = PagedList<EndPointDetailsDTO>.ToPagedList(filteredQuery, page);
+                PagedList<EndPointDetailsDTO> pagedList = PagedList<EndPointDetailsDTO>.ToPagedList(filteredQuery, page);
                 Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(pagedList.Pagination));
-                return pagedList;
+                return  pagedList;
             }
             else
                 return await filteredQuery.ToListAsync();
 
         }
-        public async Task<ActionResult<>>
+        [HttpGet]
+        [Route("LogsByTime/{id}")]
+        public async Task<ActionResult<List<HttpResultLatencyDTO>>> GetHttpResultByTime(string id, [FromQuery]TimeRangeParam range)
+        {
+            Guid userId = UserId();
+
+            var endPoint = Guid.TryParse(id, out _) ? _context.EndPoint.Find(Guid.Parse(id)) : null;
+            var auth = await _authorizationService.AuthorizeAsync(User, endPoint, Operations.Read);
+            if (!auth.Succeeded)
+                return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
+
+            var query = from ep in _context.EndPoint
+                        join ht in _context.HttpResult
+                        on ep.Id equals ht.EndPointId
+                        where
+                        ep.UserId == userId &&
+                        ep.Id == endPoint.Id &&
+                        ht.TimeStamp >= range.Start &&
+                        ht.TimeStamp <= range.End
+                        orderby ht.TimeStamp ascending
+                        select _mapper.Map<HttpResult, HttpResultLatencyDTO>(ht);
+            var query2 = await query.ToListAsync();
+            return query2;
+        }
     }
 }
