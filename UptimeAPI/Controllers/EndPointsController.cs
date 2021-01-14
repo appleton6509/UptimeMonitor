@@ -22,6 +22,7 @@ namespace UptimeAPI.Controllers
     [Authorize]
     public class EndPointsController : ApiBaseController
     {
+        #region Properties  / Constructor
         private readonly IMapper _mapper;
         private readonly UptimeContext _context;
         private readonly UserManager<IdentityUser> _userManager;
@@ -38,7 +39,9 @@ namespace UptimeAPI.Controllers
             _context = context;
             _userManager = userManager;
         }
+        #endregion
 
+        #region Basic CRUD
         // GET: api/EndPoints
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EndPoint>>> GetAllEndPoints()
@@ -116,9 +119,12 @@ namespace UptimeAPI.Controllers
 
             return endPoint;
         }
+        #endregion Basic CRUD
 
-        [HttpGet]
-        [Route("Offline")]
+        #region Custom GET
+
+        // GET: api/EndPoints/Offline
+        [HttpGet("Offline")]
         public async Task<ActionResult<List<EndPointOfflineDTO>>> Offline()
         {
             Guid userId = UserId();
@@ -139,10 +145,8 @@ namespace UptimeAPI.Controllers
             return await query.Take(totalEndPoints).Where(x => !x.IsReachable).Distinct().ToListAsync();
         }
 
-        [HttpGet]
-        [Route("ConnectionStatus")]
         // GET: api/EndPoints/ConnectionStatus
-        //create a list containing all of the endpoints latest webrequest results.
+        [HttpGet("ConnectionStatus")]
         public async Task<ActionResult<List<EndPointOfflineOnlineDTO>>> CurrentOnlineOffline()
         {
             Guid userId = UserId();
@@ -162,25 +166,8 @@ namespace UptimeAPI.Controllers
             return await query.Take(totalEndPoints).ToListAsync();
         }
 
-        //api/EndPoints/Statistics/5DFBBC20-D61E-4506-58DE-08D8B0516C01
-        [HttpGet("Statistics/{id}")]
-        //[AllowAnonymous]
-        public async Task<ActionResult<EndPointStatisticsDTO>> GetEndPointStatistics(string id)
-        {
-            Guid userId = UserId();
-            Guid.TryParse(id, out Guid result);
-            var endPoint = await _context.EndPoint.FindAsync(result);
-
-            AuthorizationResult auth = await _authorizationService.AuthorizeAsync(User, endPoint, Operations.Update);
-            if (!auth.Succeeded)
-                return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
-
-            return GetEndPointStatistics(endPoint);
-        }
-
         //api/EndPoints/Statistics
-        [HttpGet]
-        [Route("Statistics")]
+        [HttpGet("Statistics")]
         public ActionResult<List<EndPointStatisticsDTO>> GetAllEndPointStatistics()
         {
             Guid userId = UserId();
@@ -194,10 +181,27 @@ namespace UptimeAPI.Controllers
                var epstat = GetEndPointStatistics(x);
                stats.Add(epstat);
            });
-
             return stats;
         }
 
+        //api/EndPoints/Statistics/5DFBBC20-D61E-4506-58DE-08D8B0516C01
+        [HttpGet("Statistics/{id}")]
+        public async Task<ActionResult<EndPointStatisticsDTO>> GetEndPointStatistics(string id)
+        {
+            Guid userId = UserId();
+            Guid.TryParse(id, out Guid result);
+            var endPoint = await _context.EndPoint.FindAsync(result);
+
+            AuthorizationResult auth = await _authorizationService.AuthorizeAsync(User, endPoint, Operations.Update);
+            if (!auth.Succeeded)
+                return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
+
+            return GetEndPointStatistics(endPoint);
+        }
+
+        #endregion Custom GET
+
+        #region Helper Methods
         private EndPointStatisticsDTO GetEndPointStatistics(EndPoint endPoint)
         {
             var query = from ep in _context.EndPoint
@@ -235,5 +239,7 @@ namespace UptimeAPI.Controllers
         {
             return _context.EndPoint.Any(e => e.Id.ToString() == id);
         }
+
+        #endregion Helper Methods
     }
 }

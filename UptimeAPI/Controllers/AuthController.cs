@@ -15,8 +15,13 @@ using UptimeAPI.Settings;
 
 namespace UptimeAPI.Controllers
 {
+
+
     [Route("api/[controller]")]
     [ApiController]
+    /// <summary>
+    /// class for creating and authorizing users
+    /// </summary>
     public class AuthController : ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;

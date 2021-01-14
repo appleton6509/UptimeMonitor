@@ -23,6 +23,7 @@ namespace UptimeAPI.Controllers
     [ApiController]
     public class ResultController : ApiBaseController
     {
+        #region Properties / Constructor
         private readonly IMapper _mapper;
         private readonly UptimeContext _context;
         private readonly UserManager<IdentityUser> _userManager;
@@ -39,9 +40,11 @@ namespace UptimeAPI.Controllers
             _userManager = userManager;
             _authorizationService = authorizationService;
         }
-        [HttpGet]
-        [Route("Logs")]
-        public async Task<ActionResult<List<EndPointDetailsDTO>>> GetWebRequestLogs([FromQuery] ResultFilterParam filter, [FromQuery] PaginationParam page)
+        #endregion
+
+        #region Custom GET
+        [HttpGet("Logs")]
+        public async Task<ActionResult<List<EndPointDetailsDTO>>> GetAllResults([FromQuery] ResultFilterParam filter, [FromQuery] PaginationParam page)
         {
             Guid userId = UserId();
             var query =
@@ -67,15 +70,14 @@ namespace UptimeAPI.Controllers
             {
                 PagedList<EndPointDetailsDTO> pagedList = PagedList<EndPointDetailsDTO>.ToPagedList(filteredQuery, page);
                 Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(pagedList.Pagination));
-                return  pagedList;
+                return pagedList;
             }
             else
                 return await filteredQuery.ToListAsync();
 
         }
-        [HttpGet]
-        [Route("LogsByTime/{id}")]
-        public async Task<ActionResult<List<HttpResultLatencyDTO>>> GetHttpResultByTime(string id, [FromQuery]TimeRangeParam range)
+        [HttpGet("LogsByTime/{id}")]
+        public async Task<ActionResult<List<HttpResultLatencyDTO>>> GetResultByEndPointByTime(string id, [FromQuery] TimeRangeParam range)
         {
             Guid userId = UserId();
 
@@ -97,5 +99,6 @@ namespace UptimeAPI.Controllers
             var query2 = await query.ToListAsync();
             return query2;
         }
+        #endregion
     }
 }
