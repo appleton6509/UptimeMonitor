@@ -44,7 +44,7 @@ namespace UptimeAPI.Controllers
 
         #region Custom GET
         [HttpGet("Logs")]
-        public async Task<ActionResult<List<EndPointDetailsDTO>>> GetAllResults([FromQuery] ResultFilterParam filter, [FromQuery] PaginationParam page)
+        public async Task<ActionResult<List<EndPointDetailsDTO>>> GetAllResults([FromQuery] PaginationParam page, [FromQuery] ResultFilterParam filter)
         {
             Guid userId = UserId();
             var query =

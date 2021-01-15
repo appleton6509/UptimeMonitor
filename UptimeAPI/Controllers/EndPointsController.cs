@@ -147,7 +147,7 @@ namespace UptimeAPI.Controllers
 
         // GET: api/EndPoints/ConnectionStatus
         [HttpGet("ConnectionStatus")]
-        public async Task<ActionResult<List<EndPointOfflineOnlineDTO>>> CurrentOnlineOffline()
+        public async Task<ActionResult<List<EndPointOfflineOnlineDTO>>> GetConnectionStatus()
         {
             Guid userId = UserId();
             var query =
