@@ -14,7 +14,6 @@ using UptimeAPI.Controllers.QueryParams;
 using UptimeAPI.Controllers.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using UptimeAPI.Services;
-using UptimeAPI.Controllers.DTOs.EqualityComparer;
 
 namespace UptimeAPI.Controllers
 {

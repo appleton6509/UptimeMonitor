@@ -1,4 +1,5 @@
 using Data;
+using Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -19,15 +20,16 @@ namespace ProcessingService
                     services.AddHostedService<Worker>();
 
                     var hosting = services.BuildServiceProvider().GetService<IHostEnvironment>();
-                    var options = new DbContextOptionsBuilder<UptimeContext>();
 
-                    if (hosting.IsDevelopment())
-                        options.UseSqlServer(hostContext.Configuration.GetSection("ConnectionStrings")["Development"]);
-                    else
-                        options.UseSqlServer(hostContext.Configuration.GetSection("ConnectionStrings")["Production"]);
-                   
-                    services.AddScoped(s => new UptimeContext(options.Options));
-                    services.AddScoped(s => new HttpService());
+                    services.AddDbContextFactory<UptimeContext>(options => {
+                        if (hosting.IsDevelopment())
+                            options.UseSqlServer(hostContext.Configuration.GetSection("ConnectionStrings")["Development"]);
+                        else
+                            options.UseSqlServer(hostContext.Configuration.GetSection("ConnectionStrings")["Production"]);
+                    });
+                    services.AddSingleton<IMapService, MapService>();
+                    services.AddTransient<IDatabaseService, DatabaseService>();
+                    services.AddTransient<IProcessor, HttpService>();
                 });
 
     }

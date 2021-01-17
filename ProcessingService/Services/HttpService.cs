@@ -1,4 +1,5 @@
-﻿using ProcessingService.Models;
+﻿using Data.Models;
+using ProcessingService.Models;
 using System;
 using System.Diagnostics;
 using System.Net;
@@ -7,31 +8,40 @@ namespace ProcessingService.Services
 {
     public class HttpService : IProcessor
     {
-        private string _host;
-        public string Host { 
-            get
-            {
-                return this._host;
-            }
-        }
 
-        public bool SetHostName(string hostname)
+        private string SetHostName(string hostname)
         {
-            if (Object.Equals(hostname, null)) return false;
-
             string host = hostname;
             if (!hostname.Trim().StartsWith("http://"))
                 host = String.Concat("http://", hostname);
-            this._host = host;
-            return true;
+            return host;
         } 
 
-        public ResponseResult CheckConnection()
+        private bool IsHostNameValid(string hostname)
         {
+            if (Object.Equals(hostname, null)) return false;
+            return true;
+        }
+
+        public ResponseResult CheckConnection(Data.Models.EndPoint ep)
+        {
+            if (!IsHostNameValid(ep.Ip))
+            {
+                return new ResponseResult()
+                {
+                    Id = ep.Id,
+                    TimeStamp = DateTime.UtcNow,
+                    IsReachable = false,
+                    Latency = 0,
+                    StatusMessage = "Invalid hostname: " + ep.Ip,
+                };
+            }
+            string host = SetHostName(ep.Ip);
             ResponseResult result = new ResponseResult();
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Host);
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(host);
             try
             {
+                result.Id = ep.Id;
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
                 using HttpWebResponse response = (HttpWebResponse)request.GetResponse();
@@ -48,6 +58,7 @@ namespace ProcessingService.Services
             }
             return result;
         }
+
     }
 }
 

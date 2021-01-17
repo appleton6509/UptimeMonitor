@@ -18,6 +18,9 @@ namespace ProcessingService
     {
         private readonly ILogger<Worker> _logger;
         private readonly IServiceScopeFactory _scopeFactory;
+        private readonly IDatabaseService _db;
+        private readonly IProcessor _proc;
+        private readonly IMapService _map;
         /// <summary>
         /// interval (in milliseconds) between running of app
         /// </summary>
@@ -25,12 +28,14 @@ namespace ProcessingService
         /// <summary>
         /// Number of service workers that will run simultaneously
         /// </summary>
-        private int NumberOfWorkers { get; set; } = 100;
+        private int NumberOfWorkers { get; set; } = 5000;
 
-        public Worker(ILogger<Worker> logger, IServiceScopeFactory scope)
+        public Worker(ILogger<Worker> logger,IProcessor processor, IDatabaseService db, IMapService map)
         {
             _logger = logger;
-            _scopeFactory = scope;
+            _proc = processor;
+            _db = db;
+            _map = map;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -63,27 +68,9 @@ namespace ProcessingService
             }
         }
 
-        private void AddToDatabase(HttpResult result)
+        private async void CreateTasks(List<Task> tasks)
         {
-            if (Object.Equals(result,null))
-                return;
-
-            using var scope = _scopeFactory.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<UptimeContext>();
-            dbContext.HttpResult.Add(result);
-            dbContext.SaveChanges();
-        }
-
-        private List<EndPoint> GetEndPoints()
-        {
-            using var scope = _scopeFactory.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<UptimeContext>();
-            return dbContext.EndPoint.ToList();
-        }
-
-        private void CreateTasks(List<Task> tasks)
-        {
-            List<EndPoint> data = GetEndPoints();
+            List<EndPoint> data = _db.Get();
             _logger.LogInformation("Endpoint count: " + data.Count, DateTimeOffset.Now);
             foreach (var ep in data)
             {
@@ -93,34 +80,18 @@ namespace ProcessingService
                 int taskCount = tasks.Count;
                 while (taskCount >= NumberOfWorkers)
                 {
+                    await Task.Delay(1000);
                     tasks.RemoveAll(x => x.IsCompleted);
                     taskCount = tasks.Count;
                 }
                 if (tasks.Count < NumberOfWorkers)
                         tasks.Add(Task.Run(() =>
                         {
-                            using var scope = _scopeFactory.CreateScope();
-                            var http = scope.ServiceProvider.GetRequiredService<HttpService>();
-                            http.SetHostName(ep.Ip);
-                            HttpResult result = MapResult(http.CheckConnection(), ep);
-                            AddToDatabase(result);
+                             ResponseResult res = _proc.CheckConnection(ep);
+                            HttpResult result = _map.Map(res);
+                            _db.Create(result);
                         }));
             }
-        }
-
-        private HttpResult MapResult(ResponseResult result, EndPoint ep)
-        {
-            if (Object.Equals(result, null)) return null;
-
-            HttpResult http = new HttpResult()
-            {
-                EndPointId = ep.Id,
-                Latency = result.Latency,
-                IsReachable = result.IsReachable,
-                StatusMessage = result.StatusMessage,
-                TimeStamp = DateTime.UtcNow
-            };
-            return http;
         }
     }
 }
