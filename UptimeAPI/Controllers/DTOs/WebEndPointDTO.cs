@@ -1,4 +1,5 @@
 ﻿
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 
@@ -10,6 +11,9 @@ namespace UptimeAPI.Controllers.DTOs
 
         public string Description { get; set; }
 
+        [Display(Name = "Site / IP")]
+        [StringLength(5)]
         public string Ip { get; set; }
+
     }
 }

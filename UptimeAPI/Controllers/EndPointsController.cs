@@ -14,6 +14,7 @@ using UptimeAPI.Controllers.QueryParams;
 using UptimeAPI.Controllers.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using UptimeAPI.Services;
+using UptimeAPI.Controllers.DTOs.EqualityComparer;
 
 namespace UptimeAPI.Controllers
 {
@@ -92,14 +93,14 @@ namespace UptimeAPI.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<EndPoint>> PostEndPoint(WebEndPointDTO webEndPoint)
+        public async Task<ActionResult<EndPoint>> PostEndPoint(EndPoint endPoint)
         {
-            EndPoint endPoint = _mapper.Map<WebEndPointDTO, EndPoint>(webEndPoint);
+
             endPoint.UserId = UserId();
             _context.EndPoint.Add(endPoint);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetEndPoint", new { id = endPoint.Id }, endPoint);
+            return Ok();
         }
 
         // DELETE: api/EndPoints/5DFBBC20-D61E-4506-58DE-08D8B0516C01
@@ -141,13 +142,12 @@ namespace UptimeAPI.Controllers
                     Description = ep.Description,
                     Id = ep.Id
                 };
-            var totalEndPoints = _context.EndPoint.Where(x => x.UserId == userId).Select(x => x.Ip).Distinct().Count();
+            var totalEndPoints = _context.EndPoint.Where(x => x.UserId == userId).Select(x => x.Id).Distinct().Count();
             return await query.Take(totalEndPoints).Where(x => !x.IsReachable).Distinct().ToListAsync();
         }
-
         // GET: api/EndPoints/ConnectionStatus
         [HttpGet("ConnectionStatus")]
-        public async Task<ActionResult<List<EndPointOfflineOnlineDTO>>> GetConnectionStatus()
+            public async Task<ActionResult<List<EndPointOfflineOnlineDTO>>> GetConnectionStatus()
         {
             Guid userId = UserId();
             var query =
@@ -162,7 +162,7 @@ namespace UptimeAPI.Controllers
                    TimeStamp = ht.TimeStamp,
                    IsReachable = ht.IsReachable
                 };
-            var totalEndPoints = _context.EndPoint.Where(x => x.UserId == userId).Select(x => x.Ip).Distinct().Count();
+            var totalEndPoints = _context.EndPoint.Where(x => x.UserId == userId).Select(x => x.Id).Distinct().Count();
             return await query.Take(totalEndPoints).ToListAsync();
         }
 

@@ -11,5 +11,6 @@ namespace UptimeAPI.Controllers.DTOs
         public Guid Id { get; set; }
         public bool IsReachable { get; set; }
         public string Description { get; set; }
+
     }
 }
