@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using UptimeAPI.Controllers.DTOs;
+using UptimeAPI.Controllers.Repositories;
 using UptimeAPI.Services;
 using UptimeAPI.Settings;
 
@@ -27,18 +28,18 @@ namespace UptimeAPI.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IMapper _mapper;
         private readonly JwtSettings _jwtSettings;
-        private readonly UptimeContext _context;
+        private readonly IWebUserRepository _webUserRepository;
 
         public AuthController(
             UserManager<IdentityUser> userManager
             , IMapper mapper
             , IOptionsSnapshot<JwtSettings> jwtSettings
-            , UptimeContext context)
+           , IWebUserRepository webUserRepository)
         {
             _mapper = mapper;
             _userManager = userManager;
             _jwtSettings = jwtSettings.Value;
-            _context = context;
+            _webUserRepository = webUserRepository;
         }
 
         [HttpPost("SignUp")]
@@ -51,8 +52,7 @@ namespace UptimeAPI.Controllers
                 var userCreateResult = await _userManager.CreateAsync(user, userDTO.Password);
                 if (userCreateResult.Succeeded)
                 {
-                    _context.WebUser.Add(new WebUser(userDTO.Username,user.Id));
-                    await  _context.SaveChangesAsync();
+                    await _webUserRepository.PostAsync(new WebUser(userDTO.Username,user.Id));
                     return Created(String.Empty, String.Empty);
                 }
  
@@ -64,13 +64,12 @@ namespace UptimeAPI.Controllers
         [HttpPost("SignIn")]
         public async Task<IActionResult> SignIn(WebUserDTO userDTO)
         {
-
             IdentityUser user = await  _userManager.FindByNameAsync(userDTO.Username);
             if (Object.Equals(user,null))
                 return BadRequest("incorrect user name");
 
             var passwordIsValid = await  _userManager.CheckPasswordAsync(user, userDTO.Password);
-            WebUser webUser = _context.WebUser.FirstOrDefault(x => x.IdentityId.Equals(user.Id));
+            WebUser webUser = _webUserRepository.Get(user.Id);
             if (passwordIsValid && !Object.Equals(webUser, null))
                     return Ok(new JwtTokenService().GenerateToken(webUser, _jwtSettings));
             return BadRequest("username or password incorrect");

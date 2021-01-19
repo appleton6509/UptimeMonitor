@@ -48,6 +48,7 @@ namespace UptimeAPI
                         options.UseSqlServer(Configuration.GetConnectionString("Production"), s => s.MigrationsAssembly("Data")));
             services.AddScoped<IEndPointRepository, EndPointRepository>();
             services.AddScoped<IHttpResultRepository, HttpResultRepository>();
+            services.AddScoped<IWebUserRepository, WebUserRepository>();
 
             //mapper
             services.AddAutoMapper(typeof(MappingProfile));
