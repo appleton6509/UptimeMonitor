@@ -26,7 +26,8 @@ namespace UptimeAPI.Services
             return Task.CompletedTask;
         }
     }
-    public class Operations {
+    public class Operations
+    {
         public static OperationAuthorizationRequirement Create =
             new OperationAuthorizationRequirement { Name = nameof(Create) };
         public static OperationAuthorizationRequirement Read =

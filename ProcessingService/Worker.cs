@@ -17,7 +17,6 @@ namespace ProcessingService
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
-        private readonly IServiceScopeFactory _scopeFactory;
         private readonly IDatabaseService _db;
         private readonly IProcessor _proc;
         private readonly IMapService _map;

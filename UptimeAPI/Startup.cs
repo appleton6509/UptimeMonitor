@@ -16,6 +16,9 @@ using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using UptimeAPI.Services;
 using UptimeAPI.Controllers.Mapping;
+using Data.Repositories;
+using Data.Models;
+using UptimeAPI.Controllers.Repositories;
 
 namespace UptimeAPI
 {
@@ -38,15 +41,12 @@ namespace UptimeAPI
 
             //for entity framework
             if (_environment.IsDevelopment())
-            {
                 services.AddDbContext<UptimeContext>(options =>
                         options.UseSqlServer(Configuration.GetConnectionString("Development"), s => s.MigrationsAssembly("Data")));
-            }
             else
-            {
                 services.AddDbContext<UptimeContext>(options =>
                         options.UseSqlServer(Configuration.GetConnectionString("Production"), s => s.MigrationsAssembly("Data")));
-            }
+            services.AddScoped<IEndPointRepository, EndPointRepository>();
 
             //mapper
             services.AddAutoMapper(typeof(MappingProfile));
@@ -55,6 +55,7 @@ namespace UptimeAPI
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddEntityFrameworkStores<UptimeContext>()
                 .AddDefaultTokenProviders();
+            services.AddHttpContextAccessor();
 
             //for Tokens
             var jwtSettings = Configuration.GetSection("Jwt").Get<JwtSettings>();

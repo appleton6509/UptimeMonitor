@@ -4,9 +4,8 @@ using System.Text;
 
 namespace Data.Models
 {
-    public class HttpResult
+    public class HttpResult : BaseModel
     {
-        public Guid Id { get; set; }
         public DateTime TimeStamp { get; set; }
         public bool IsReachable { get; set; }
         public int Latency { get; set; }
