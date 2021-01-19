@@ -4,17 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Data;
 using Data.Models;
-using AutoMapper;
-using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
 using UptimeAPI.Messaging;
-using UptimeAPI.Controllers.QueryParams;
 using UptimeAPI.Controllers.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using UptimeAPI.Services;
-using Data.Repositories;
 using UptimeAPI.Controllers.Repositories;
 
 namespace UptimeAPI.Controllers
@@ -25,20 +19,14 @@ namespace UptimeAPI.Controllers
     public class EndPointsController : ControllerBase
     {
         #region Properties  / Constructor
-        private readonly IMapper _mapper;
-        private readonly UptimeContext _context;
         private readonly IAuthorizationService _authorizationService;
         private readonly IEndPointRepository _endPointRepository;
 
         public EndPointsController(
-             IMapper mapper
-            , IAuthorizationService authorizationService
-            , UptimeContext context
+            IAuthorizationService authorizationService
             , IEndPointRepository endPoint)
         {
             _authorizationService = authorizationService;
-            _mapper = mapper;
-            _context = context;
             _endPointRepository = endPoint;
         }
         #endregion
