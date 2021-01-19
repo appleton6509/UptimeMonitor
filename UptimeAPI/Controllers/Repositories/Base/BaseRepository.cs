@@ -1,4 +1,5 @@
-﻿using Data.Models;
+﻿using AutoMapper;
+using Data.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -17,8 +18,18 @@ namespace Data.Repositories
         internal readonly UptimeContext _context;
         private DbSet<T> _model;
         internal IHttpContextAccessor _httpContext;
+        internal IMapper _mapper;
         internal readonly IAuthorizationService _authorizationService;
         internal readonly Guid _userId;
+        public BaseRepository(UptimeContext context, IHttpContextAccessor httpcontext, IAuthorizationService auth, IMapper mapper)
+        {
+            _context = context;
+            _httpContext = httpcontext;
+            _authorizationService = auth;
+            _model = _context.Set<T>();
+            _userId = UserId();
+            _mapper = mapper;
+        }
         public BaseRepository(UptimeContext context, IHttpContextAccessor httpcontext, IAuthorizationService auth)
         {
             _context = context;

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using UptimeAPI.Controllers.DTOs;
 using UptimeAPI.Controllers.Helper;
 using UptimeAPI.Controllers.QueryParams;
+using UptimeAPI.Controllers.Repositories;
 using UptimeAPI.Messaging;
 using UptimeAPI.Services;
 
@@ -24,80 +25,46 @@ namespace UptimeAPI.Controllers
     public class ResultController : ApiBaseController
     {
         #region Properties / Constructor
-        private readonly IMapper _mapper;
-        private readonly UptimeContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
         private readonly IAuthorizationService _authorizationService;
+        private readonly IHttpResultRepository _httpResultRepository;
+        private readonly IEndPointRepository _endPointRepository;
+
 
         public ResultController(
-             IMapper mapper
-            , UptimeContext context
-            , UserManager<IdentityUser> userManager
+            IHttpResultRepository httpResultRepository
+            , IEndPointRepository endPointRepository
             , IAuthorizationService authorizationService)
         {
-            _mapper = mapper;
-            _context = context;
-            _userManager = userManager;
             _authorizationService = authorizationService;
+            _httpResultRepository = httpResultRepository;
+            _endPointRepository = endPointRepository;
         }
         #endregion
 
         #region Custom GET
         [HttpGet("Logs")]
-        public async Task<ActionResult<List<EndPointDetailsDTO>>> GetAllResults([FromQuery] PaginationParam page, [FromQuery] ResultFilterParam filter)
+        public  ActionResult<List<EndPointDetailsDTO>> GetAllResults([FromQuery] PaginationParam page, [FromQuery] ResultFilterParam filter)
         {
-            Guid userId = UserId();
-            var query =
-                from ep in _context.EndPoint
-                join ht in _context.HttpResult
-                on ep.Id equals ht.EndPointId
-                where ep.UserId == userId
-                orderby ht.TimeStamp descending
-                select new EndPointDetailsDTO()
-                {
-                    Ip = ep.Ip,
-                    IsReachable = ht.IsReachable,
-                    Description = ep.Description,
-                    Id = ep.Id,
-                    Latency = ht.Latency,
-                    Status = ht.StatusMessage,
-                    TimeStamp = ht.TimeStamp
-                };
-
-            var filteredQuery = new ResultFilterRules(filter, query).ApplyFilters();
+            _httpResultRepository.GetAll(page, filter);
 
             if (page.RequestedPage > 0 & page.MaxPageSize > 0)
             {
-                PagedList<EndPointDetailsDTO> pagedList = PagedList<EndPointDetailsDTO>.ToPagedList(filteredQuery, page);
+                PagedList<EndPointDetailsDTO> pagedList = (PagedList<EndPointDetailsDTO>)_httpResultRepository.GetAll(page, filter);
                 Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(pagedList.Pagination));
                 return pagedList;
             }
-            else
-                return await filteredQuery.ToListAsync();
+            return _httpResultRepository.GetAll(page, filter);
 
         }
         [HttpGet("LogsByTime/{id}")]
-        public async Task<ActionResult<List<HttpResultLatencyDTO>>> GetResultByEndPointByTime(string id, [FromQuery] TimeRangeParam range)
+        public async Task<ActionResult<List<HttpResultLatencyDTO>>> GetResultByEndPointByTime(Guid id, [FromQuery] TimeRangeParam range)
         {
-            Guid userId = UserId();
-
-            var endPoint = Guid.TryParse(id, out _) ? _context.EndPoint.Find(Guid.Parse(id)) : null;
-            var auth = await _authorizationService.AuthorizeAsync(User, endPoint, Operations.Read);
+            EndPoint ep = _endPointRepository.Get(id);
+            AuthorizationResult auth = await _authorizationService.AuthorizeAsync(User, ep, Operations.Update);
             if (!auth.Succeeded)
                 return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
 
-            var query = from ep in _context.EndPoint
-                        join ht in _context.HttpResult
-                        on ep.Id equals ht.EndPointId
-                        where
-                        ep.UserId == userId &&
-                        ep.Id == endPoint.Id &&
-                        ht.TimeStamp >= range.Start &&
-                        ht.TimeStamp <= range.End
-                        orderby ht.TimeStamp ascending
-                        select _mapper.Map<HttpResult, HttpResultLatencyDTO>(ht);
-            var query2 = await query.ToListAsync();
-            return query2;
+            return await _httpResultRepository.GetByEndPoint(id, range);
         }
         #endregion
     }

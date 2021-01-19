@@ -47,6 +47,7 @@ namespace UptimeAPI
                 services.AddDbContext<UptimeContext>(options =>
                         options.UseSqlServer(Configuration.GetConnectionString("Production"), s => s.MigrationsAssembly("Data")));
             services.AddScoped<IEndPointRepository, EndPointRepository>();
+            services.AddScoped<IHttpResultRepository, HttpResultRepository>();
 
             //mapper
             services.AddAutoMapper(typeof(MappingProfile));
@@ -76,7 +77,7 @@ namespace UptimeAPI
             {
                 options.AddPolicy(nameof(Operations), policy => policy.Requirements.Add(new OperationAuthorizationRequirement()));
             });
-            services.AddSingleton<IAuthorizationHandler, UserOwnsResourceAuthorizationHandler>();
+            services.AddSingleton<IAuthorizationHandler, EndpointAuthorizationHandler>();
 
             //Register swagger 
             services.AddSwaggerGen(doc =>

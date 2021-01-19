@@ -12,7 +12,7 @@ namespace UptimeAPI.Services
     /// <summary>
     /// provides authorization for a user to modify an existing resource
     /// </summary>
-    public class UserOwnsResourceAuthorizationHandler : AuthorizationHandler<OperationAuthorizationRequirement, EndPoint>
+    public class EndpointAuthorizationHandler : AuthorizationHandler<OperationAuthorizationRequirement, EndPoint>
     {
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, 
             OperationAuthorizationRequirement requirement, EndPoint resource)
