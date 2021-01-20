@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,8 @@ namespace Data.Repositories
         public EndPointRepository(
             UptimeContext context,
             IHttpContextAccessor httpContext,
-            IAuthorizationService authorizationService) : base(context, httpContext, authorizationService)   { }
+            IAuthorizationService authorizationService,
+            ILogger<EndPointRepository> logger) : base(context, httpContext, authorizationService,null,logger)   { }
 
         #region CRUD 
         public override EndPoint Get(Guid id)
@@ -92,7 +94,24 @@ namespace Data.Repositories
                         orderby ht.TimeStamp descending
                         select ht;
             if (!query.Any())
-                return new EndPointStatisticsDTO();
+            {
+                var endpoint = _context.EndPoint.Find(endPoint.Id);
+                if (!Object.Equals(endpoint,null))
+                {
+                    return new EndPointStatisticsDTO()
+                    {
+                        AverageLatency = 0,
+                        LastDownTime = null,
+                        LastSeen = null,
+                        Ip = endPoint.Ip,
+                        IsReachable = false,
+                        Description = endPoint.Description,
+                        Id = endPoint.Id
+                    };
+                }
+                _logger.LogInformation("Endpoint not found: " + endPoint.Id);
+                throw new ArgumentException("Endpoint not found");
+            }
 
             DateTime timeNow = DateTime.UtcNow.AddMinutes(-15);
             double? avgLatency = null;

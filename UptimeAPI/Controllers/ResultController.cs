@@ -22,7 +22,7 @@ namespace UptimeAPI.Controllers
     [Route("api/[controller]")]
     [Authorize]
     [ApiController]
-    public class ResultController : ApiBaseController
+    public class ResultController : ControllerBase
     {
         #region Properties / Constructor
         private readonly IAuthorizationService _authorizationService;

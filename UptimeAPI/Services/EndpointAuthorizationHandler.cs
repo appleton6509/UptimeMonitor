@@ -1,11 +1,13 @@
 ﻿using Data.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using UptimeAPI.Messaging;
 
 namespace UptimeAPI.Services
 {
@@ -14,13 +16,18 @@ namespace UptimeAPI.Services
     /// </summary>
     public class EndpointAuthorizationHandler : AuthorizationHandler<OperationAuthorizationRequirement, EndPoint>
     {
+
+
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, 
             OperationAuthorizationRequirement requirement, EndPoint resource)
         {
            Guid.TryParse(context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid userId);
 
             if (Object.Equals(resource, null) || Object.Equals(userId, null))
-                 context.Fail();
+            {
+               context.Fail();
+            }
+
             else if (resource.UserId == userId)
                 context.Succeed(requirement);
             return Task.CompletedTask;

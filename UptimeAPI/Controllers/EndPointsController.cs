@@ -10,6 +10,7 @@ using UptimeAPI.Controllers.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using UptimeAPI.Services;
 using UptimeAPI.Controllers.Repositories;
+using Microsoft.Extensions.Logging;
 
 namespace UptimeAPI.Controllers
 {
@@ -21,13 +22,17 @@ namespace UptimeAPI.Controllers
         #region Properties  / Constructor
         private readonly IAuthorizationService _authorizationService;
         private readonly IEndPointRepository _endPointRepository;
+        private readonly ILogger<EndPointsController> _logger;
+
 
         public EndPointsController(
-            IAuthorizationService authorizationService
+            ILogger<EndPointsController> logger
+            , IAuthorizationService authorizationService
             , IEndPointRepository endPoint)
         {
             _authorizationService = authorizationService;
             _endPointRepository = endPoint;
+            _logger = logger;
         }
         #endregion
 
@@ -49,7 +54,11 @@ namespace UptimeAPI.Controllers
             EndPoint ep = _endPointRepository.Get(id);
             AuthorizationResult auth = await _authorizationService.AuthorizeAsync(User, ep, Operations.Update);
             if (!auth.Succeeded)
+            {
+
                 return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
+            }
+
 
             try
             {
