@@ -6,6 +6,7 @@ using Data.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -19,14 +20,22 @@ namespace UptimeAPI.Controllers.Repositories
 {
     public class HttpResultRepository : BaseRepository<HttpResult>, IHttpResultRepository
     {
+        private readonly IAuthorizationService _authService;
+        private readonly IMapper _mapper;
+        private readonly IMemoryCache _cache;
         public HttpResultRepository(
             UptimeContext context,
             IHttpContextAccessor httpContext,
-            IAuthorizationService authorizationService,
-            IMapper mapper) : base(context, httpContext, authorizationService, mapper) { }
+            IMapper mapper,
+            IMemoryCache cache) : base(context, httpContext)
+        {
+            _mapper = mapper;
+            _cache = cache;
+        }
 
         public List<EndPointDetailsDTO> GetAll(PaginationParam page, ResultFilterParam filter)
         {
+
             var query =
                 from ep in _context.EndPoint
                 join ht in _context.HttpResult

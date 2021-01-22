@@ -12,9 +12,9 @@ namespace UptimeAPI.Controllers.Repositories
 {
     public class WebUserRepository : BaseRepository<WebUser>, IWebUserRepository
     {
-        public WebUserRepository(UptimeContext context, IHttpContextAccessor httpcontext, IAuthorizationService auth) : base(context, httpcontext, auth)
-        {
-        }
+        public WebUserRepository(UptimeContext context, IHttpContextAccessor httpcontext)
+            : base(context, httpcontext) { }
+        
         public WebUser Get(string identityId)
         {
             return _context.WebUser.FirstOrDefault(x => x.IdentityId.Equals(identityId));

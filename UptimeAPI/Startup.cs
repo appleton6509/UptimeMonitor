@@ -24,15 +24,15 @@ namespace UptimeAPI
 {
     public class Startup
     {
+        private readonly IWebHostEnvironment _environment;
+        public IConfiguration Configuration { get; }
+        private readonly string AppCorsPolicy = "_appCorsPolicy";
+
         public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
             _environment = env;
         }
-        private IWebHostEnvironment _environment;
-
-        public IConfiguration Configuration { get; }
-        private readonly string AppCorsPolicy = "_appCorsPolicy";
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -96,6 +96,9 @@ namespace UptimeAPI
                 .WithExposedHeaders("X-Pagination"));
             });
 
+            //caching
+            services.AddMemoryCache();
+
         }
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -123,7 +126,7 @@ namespace UptimeAPI
             app.UseRouting();
 
             app.UseCors(AppCorsPolicy);
-
+           
             app.UseAuthentication();
             app.UseAuthorization();
 

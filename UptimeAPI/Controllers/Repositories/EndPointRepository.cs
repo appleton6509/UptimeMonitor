@@ -18,9 +18,7 @@ namespace Data.Repositories
     {
         public EndPointRepository(
             UptimeContext context,
-            IHttpContextAccessor httpContext,
-            IAuthorizationService authorizationService,
-            ILogger<EndPointRepository> logger) : base(context, httpContext, authorizationService,null,logger)   { }
+            IHttpContextAccessor httpContext) : base(context, httpContext)   { }
 
         #region CRUD 
         public override EndPoint Get(Guid id)
@@ -109,8 +107,6 @@ namespace Data.Repositories
                         Id = endPoint.Id
                     };
                 }
-                _logger.LogInformation("Endpoint not found: " + endPoint.Id);
-                throw new ArgumentException("Endpoint not found");
             }
 
             DateTime timeNow = DateTime.UtcNow.AddMinutes(-15);
