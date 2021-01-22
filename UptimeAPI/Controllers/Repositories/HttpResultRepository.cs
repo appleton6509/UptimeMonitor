@@ -35,7 +35,7 @@ namespace UptimeAPI.Controllers.Repositories
 
         public List<EndPointDetailsDTO> GetAll(PaginationParam page, ResultFilterParam filter)
         {
-            var key = $"{nameof(HttpResultRepository)} - {_userId} - {nameof(GetAll)} - {page.RequestedPage}";
+            var key = $"{nameof(HttpResultRepository)} - {_userId} - {nameof(GetAll)} - {page.RequestedPage} - {filter}";
             var cacheValue = _cache.Get<List<EndPointDetailsDTO>>(key);
             if (cacheValue != null)
                 return cacheValue;
