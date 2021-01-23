@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -10,25 +11,40 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using UptimeAPI.Controllers.DTOs;
+using UptimeAPI.Controllers.Extensions;
 using UptimeAPI.Controllers.Repositories;
 
 namespace Data.Repositories
 {
     public class EndPointRepository : BaseRepository<EndPoint>, IEndPointRepository
     {
+        private readonly IMemoryCache _cache;
         public EndPointRepository(
             UptimeContext context,
-            IHttpContextAccessor httpContext) : base(context, httpContext)   { }
+            IHttpContextAccessor httpContext,
+            IMemoryCache cache) : base(context, httpContext)   {
+            _cache = cache;
+        }
 
         #region CRUD 
         public override EndPoint Get(Guid id)
         {
-            return _context.EndPoint.Find(id);
+            string key = $"{nameof(EndPointRepository)} - {nameof(Get)} - {id}";
+           EndPoint result = _cache.Get<EndPoint>(key);
+            if (result != null)
+                return result;
+            result = _context.EndPoint.Find(id);
+            _cache.SetCache<EndPoint>(key, result,60);
+            return result;
         }
 
-        public override Task<List<EndPoint>> GetAllAsync()
+        public override List<EndPoint> GetAll()
         {
-            return  _context.EndPoint.Where(x => x.UserId.Equals(_userId)).ToListAsync();
+            string key = $"{nameof(EndPointRepository)} - {nameof(GetAll)} - {_userId}";
+            List<EndPoint> result = _cache.Get<List<EndPoint>>(key);
+            if (result != null)
+                return result;
+            return  _context.EndPoint.Where(x => x.UserId.Equals(_userId)).ToList();
         }
 
         public override Task<int> PostAsync(EndPoint model)
@@ -48,7 +64,7 @@ namespace Data.Repositories
         }
         #endregion
 
-        public  Task<List<EndPointOfflineDTO>> GetOfflineEndPointsAsync()
+        public  List<EndPointOfflineDTO> GetOfflineEndPoints()
         {
             var query =
                 from ep in _context.EndPoint
@@ -64,9 +80,9 @@ namespace Data.Repositories
                     Id = ep.Id
                 };
             var totalEndPoints = _context.EndPoint.Where(x => x.UserId == _userId).Select(x => x.Id).Distinct().Count();
-            return  query.Take(totalEndPoints).Where(x => !x.IsReachable).Distinct().ToListAsync();
+            return  query.Take(totalEndPoints).Where(x => !x.IsReachable).Distinct().ToList();
         }
-        public Task<List<EndPointOfflineOnlineDTO>> GetEndPointsStatus()
+        public List<EndPointOfflineOnlineDTO> GetEndPointsStatus()
         {
             var query =
                 from ep in _context.EndPoint
@@ -81,7 +97,7 @@ namespace Data.Repositories
                     IsReachable = ht.IsReachable
                 };
             var totalEndPoints = _context.EndPoint.Where(x => x.UserId == _userId).Select(x => x.Id).Distinct().Count();
-            return query.Take(totalEndPoints).ToListAsync();
+            return query.Take(totalEndPoints).ToList();
         }
         public EndPointStatisticsDTO GetEndPointStatistics(EndPoint endPoint)
         {

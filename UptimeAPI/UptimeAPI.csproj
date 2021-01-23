@@ -23,5 +23,9 @@
     <ProjectReference Include="..\Data\Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\Repositories\Caching\" />
+  </ItemGroup>
+
 
 </Project>

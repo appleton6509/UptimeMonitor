@@ -25,7 +25,7 @@ namespace UptimeAPI.Controllers.Repositories
             return _context.SaveChangesAsync();
         }
 
-        public override Task<List<WebUser>> GetAllAsync()
+        public override List<WebUser> GetAll()
         {
             throw new NotImplementedException();
         }

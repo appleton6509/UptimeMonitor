@@ -64,7 +64,7 @@ namespace UptimeAPI.Controllers.Repositories
             else
                 results = filteredQuery.ToList();
 
-            _cache.SetCache<List<EndPointDetailsDTO>>(key, results);
+            _cache.SetCache(key, results,120);
             return results;
         }
         public async Task<List<HttpResultLatencyDTO>> GetByEndPoint(Guid id, TimeRangeParam range)
@@ -88,11 +88,11 @@ namespace UptimeAPI.Controllers.Repositories
                         select _mapper.Map<HttpResult, HttpResultLatencyDTO>(ht);
 
             var results = await query.ToListAsync();
-            _cache.SetCache<List<HttpResultLatencyDTO>>(key, results);
+            _cache.SetCache(key, results,120);
             return results;
         }
 
-        public override Task<List<HttpResult>> GetAllAsync()
+        public override List<HttpResult> GetAll()
         {
             throw new NotImplementedException();
         }

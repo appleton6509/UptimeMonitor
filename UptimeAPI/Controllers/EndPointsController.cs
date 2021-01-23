@@ -39,9 +39,9 @@ namespace UptimeAPI.Controllers
         #region Basic CRUD
         // GET: api/EndPoints
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<EndPoint>>> GetAllEndPoints()
+        public ActionResult<IEnumerable<EndPoint>> GetAllEndPoints()
         {
-            return await _endPointRepository.GetAllAsync();
+            return  _endPointRepository.GetAll();
         }
 
         // PUT: api/EndPoints/5DFBBC20-D61E-4506-58DE-08D8B0516C01
@@ -54,11 +54,7 @@ namespace UptimeAPI.Controllers
             EndPoint ep = _endPointRepository.Get(id);
             AuthorizationResult auth = await _authorizationService.AuthorizeAsync(User, ep, Operations.Update);
             if (!auth.Succeeded)
-            {
-
                 return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
-            }
-
 
             try
             {
@@ -112,15 +108,15 @@ namespace UptimeAPI.Controllers
 
         // GET: api/EndPoints/Offline
         [HttpGet("Offline")]
-        public async Task<ActionResult<List<EndPointOfflineDTO>>> GetOfflineEndPoints()
+        public ActionResult<List<EndPointOfflineDTO>> GetOfflineEndPoints()
         {
-            return await _endPointRepository.GetOfflineEndPointsAsync();
+            return _endPointRepository.GetOfflineEndPoints();
         }
         // GET: api/EndPoints/ConnectionStatus
         [HttpGet("ConnectionStatus")]
-            public async Task<ActionResult<List<EndPointOfflineOnlineDTO>>> GetEndPointsStatus()
+            public  ActionResult<List<EndPointOfflineOnlineDTO>> GetEndPointsStatus()
         {
-            return await _endPointRepository.GetEndPointsStatus();
+            return _endPointRepository.GetEndPointsStatus();
         }
 
         //api/EndPoints/Statistics

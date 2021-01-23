@@ -10,8 +10,8 @@ namespace UptimeAPI.Controllers.Repositories
 {
    public interface IEndPointRepository : IRepository<EndPoint>
     {
-        public Task<List<EndPointOfflineDTO>> GetOfflineEndPointsAsync();
-        public Task<List<EndPointOfflineOnlineDTO>> GetEndPointsStatus();
+        public List<EndPointOfflineDTO> GetOfflineEndPoints();
+        public List<EndPointOfflineOnlineDTO> GetEndPointsStatus();
         public EndPointStatisticsDTO GetEndPointStatistics(EndPoint endPoint);
         public List<EndPointStatisticsDTO> GetEndPointStatistics();
     } 

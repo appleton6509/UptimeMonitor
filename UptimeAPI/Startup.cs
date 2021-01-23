@@ -74,9 +74,10 @@ namespace UptimeAPI
             });
 
             //user authorization to resource
-            services.AddAuthorization(options=>
+            services.AddAuthorization(options =>
             {
                 options.AddPolicy(nameof(Operations), policy => policy.Requirements.Add(new OperationAuthorizationRequirement()));
+                options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
             });
             services.AddSingleton<IAuthorizationHandler, EndpointAuthorizationHandler>();
 

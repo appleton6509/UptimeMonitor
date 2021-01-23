@@ -30,7 +30,7 @@ namespace Data.Repositories
         }
         public abstract Task<int> PutAsync(Guid id, T model);
         public abstract Task<int> PostAsync(T model);
-        public abstract Task<List<T>> GetAllAsync();
+        public abstract List<T> GetAll();
         public virtual void Delete(Guid id)
         {
             var model = _model.Find(id);
