@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace UptimeAPI.Controllers.Extensions
 {
-    public static class CacheExtension 
+    public static class CacheExtension
     {
         public static void SetCache<T>(this IMemoryCache cache, string key, T value, int expireInSeconds = 120)
         {

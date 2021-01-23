@@ -19,6 +19,7 @@ using UptimeAPI.Controllers.Mapping;
 using Data.Repositories;
 using Data.Models;
 using UptimeAPI.Controllers.Repositories;
+using UptimeAPI.Controllers.Repositories.CacheRepositories;
 
 namespace UptimeAPI
 {
@@ -46,8 +47,10 @@ namespace UptimeAPI
             else
                 services.AddDbContext<UptimeContext>(options =>
                         options.UseSqlServer(Configuration.GetConnectionString("Production"), s => s.MigrationsAssembly("Data")));
-            services.AddScoped<IEndPointRepository, EndPointRepository>();
-            services.AddScoped<IHttpResultRepository, HttpResultRepository>();
+            services.AddScoped<IEndPointRepository, EndPointRepositoryCacheDecorator>();
+            services.AddScoped<EndPointRepository>();
+            services.AddScoped<IHttpResultRepository, HttpResultRepositoryCacheDecorator>();
+            services.AddScoped<HttpResultRepository>();
             services.AddScoped<IWebUserRepository, WebUserRepository>();
 
             //mapper
@@ -121,7 +124,7 @@ namespace UptimeAPI
             {
                 x.SwaggerEndpoint("v1/swagger.json", "UptimeAP v1");
             });
-
+            
             app.UseHttpsRedirection();
 
             app.UseRouting();

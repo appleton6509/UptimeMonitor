@@ -16,45 +16,31 @@ using UptimeAPI.Controllers.Repositories;
 
 namespace Data.Repositories
 {
-    public class EndPointRepository : BaseRepository<EndPoint>, IEndPointRepository
+    public class EndPointRepository : BaseRepository, IEndPointRepository
     {
-        private readonly IMemoryCache _cache;
-        public EndPointRepository(
-            UptimeContext context,
-            IHttpContextAccessor httpContext,
-            IMemoryCache cache) : base(context, httpContext)   {
-            _cache = cache;
-        }
+
+        public EndPointRepository(UptimeContext context, IHttpContextAccessor httpcontext) : base(context, httpcontext) { }
+
 
         #region CRUD 
-        public override EndPoint Get(Guid id)
+        public  EndPoint Get(Guid id)
         {
-            string key = $"{nameof(EndPointRepository)} - {nameof(Get)} - {id}";
-           EndPoint result = _cache.Get<EndPoint>(key);
-            if (result != null)
-                return result;
-            result = _context.EndPoint.Find(id);
-            _cache.SetCache<EndPoint>(key, result,60);
-            return result;
+            return _context.EndPoint.Find(id); ;
         }
 
-        public override List<EndPoint> GetAll()
+        public List<EndPoint> GetAll()
         {
-            string key = $"{nameof(EndPointRepository)} - {nameof(GetAll)} - {_userId}";
-            List<EndPoint> result = _cache.Get<List<EndPoint>>(key);
-            if (result != null)
-                return result;
-            return  _context.EndPoint.Where(x => x.UserId.Equals(_userId)).ToList();
+            return  _context.EndPoint.Where(x => x.UserId.Equals(UserId())).ToList();
         }
 
-        public override Task<int> PostAsync(EndPoint model)
+        public Task<int> PostAsync(EndPoint model)
         {
-            model.UserId = _userId;
+            model.UserId = UserId();
             _context.EndPoint.Add(model);
             return _context.SaveChangesAsync();
         }
 
-        public override Task<int> PutAsync(Guid id, EndPoint model)
+        public Task<int> PutAsync(Guid id, EndPoint model)
         {
             EndPoint ep = _context.EndPoint.Find(id);
             ep.Description = model.Description;
@@ -70,7 +56,7 @@ namespace Data.Repositories
                 from ep in _context.EndPoint
                 join ht in _context.HttpResult
                 on ep.Id equals ht.EndPointId
-                where ep.UserId == _userId
+                where ep.UserId == UserId()
                 orderby ht.TimeStamp descending
                 select new EndPointOfflineDTO()
                 {
@@ -79,7 +65,7 @@ namespace Data.Repositories
                     Description = ep.Description,
                     Id = ep.Id
                 };
-            var totalEndPoints = _context.EndPoint.Where(x => x.UserId == _userId).Select(x => x.Id).Distinct().Count();
+            var totalEndPoints = _context.EndPoint.Where(x => x.UserId == UserId()).Select(x => x.Id).Distinct().Count();
             return  query.Take(totalEndPoints).Where(x => !x.IsReachable).Distinct().ToList();
         }
         public List<EndPointOfflineOnlineDTO> GetEndPointsStatus()
@@ -88,7 +74,7 @@ namespace Data.Repositories
                 from ep in _context.EndPoint
                 join ht in _context.HttpResult
                 on ep.Id equals ht.EndPointId
-                where ep.UserId == _userId
+                where ep.UserId == UserId()
                 orderby ht.TimeStamp descending
                 select new EndPointOfflineOnlineDTO()
                 {
@@ -96,7 +82,7 @@ namespace Data.Repositories
                     TimeStamp = ht.TimeStamp,
                     IsReachable = ht.IsReachable
                 };
-            var totalEndPoints = _context.EndPoint.Where(x => x.UserId == _userId).Select(x => x.Id).Distinct().Count();
+            var totalEndPoints = _context.EndPoint.Where(x => x.UserId == UserId()).Select(x => x.Id).Distinct().Count();
             return query.Take(totalEndPoints).ToList();
         }
         public EndPointStatisticsDTO GetEndPointStatistics(EndPoint endPoint)
@@ -149,7 +135,7 @@ namespace Data.Repositories
         public List<EndPointStatisticsDTO> GetEndPointStatistics()
         {
             var endPoints = (from ep in _context.EndPoint
-                             where ep.UserId == _userId
+                             where ep.UserId == UserId()
                              select ep).ToList();
             List<EndPointStatisticsDTO> stats = new List<EndPointStatisticsDTO>();
 
@@ -159,6 +145,18 @@ namespace Data.Repositories
                 stats.Add(epstat);
             });
             return stats;
+        }
+
+        public void Delete(Guid id)
+        {
+            var model = _context.EndPoint.Find(id);
+            _context.Remove(model);
+            _context.SaveChanges();
+        }
+
+        public bool Exists(Guid id)
+        {
+            return _context.EndPoint.Any(x => x.Id == id);
         }
     }
 }

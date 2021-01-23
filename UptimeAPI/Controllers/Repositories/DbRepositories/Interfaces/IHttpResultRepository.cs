@@ -9,6 +9,6 @@ namespace UptimeAPI.Controllers.Repositories
     public interface IHttpResultRepository
     {
         List<EndPointDetailsDTO> GetAll(PaginationParam page, ResultFilterParam filter);
-        Task<List<HttpResultLatencyDTO>> GetByEndPoint(Guid id, TimeRangeParam range);
+        Task<List<HttpResultLatencyDTO>> GetByEndPointAsync(Guid id, TimeRangeParam range);
     }
 }

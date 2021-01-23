@@ -19,32 +19,19 @@ using UptimeAPI.Controllers.QueryParams;
 
 namespace UptimeAPI.Controllers.Repositories
 {
-    public class HttpResultRepository : BaseRepository<HttpResult>, IHttpResultRepository
+    public class HttpResultRepository : BaseRepository, IHttpResultRepository
     {
-        private readonly IMemoryCache _cache;
-        private readonly IMapper _mapper;
-        public HttpResultRepository(
-            UptimeContext context,
-            IHttpContextAccessor httpContext,
-            IMemoryCache cache,
-            IMapper mapper) : base(context, httpContext)
+        public HttpResultRepository(UptimeContext context, IHttpContextAccessor httpcontext, IMapper mapper = null) : base(context, httpcontext, mapper)
         {
-            _cache = cache;
-            _mapper = mapper;
         }
 
         public List<EndPointDetailsDTO> GetAll(PaginationParam page, ResultFilterParam filter)
         {
-            var key = $"{nameof(HttpResultRepository)} - {_userId} - {nameof(GetAll)} - {page.RequestedPage} - {filter}";
-            var cacheValue = _cache.Get<List<EndPointDetailsDTO>>(key);
-            if (cacheValue != null)
-                return cacheValue;
-
             var query =
                 from ep in _context.EndPoint
                 join ht in _context.HttpResult
                 on ep.Id equals ht.EndPointId
-                where ep.UserId == _userId
+                where ep.UserId == UserId()
                 orderby ht.TimeStamp descending
                 select new EndPointDetailsDTO()
                 {
@@ -63,46 +50,36 @@ namespace UptimeAPI.Controllers.Repositories
                 results = PagedList<EndPointDetailsDTO>.ToPagedList(filteredQuery, page);
             else
                 results = filteredQuery.ToList();
-
-            _cache.SetCache(key, results,120);
             return results;
         }
-        public async Task<List<HttpResultLatencyDTO>> GetByEndPoint(Guid id, TimeRangeParam range)
+        public async Task<List<HttpResultLatencyDTO>> GetByEndPointAsync(Guid id, TimeRangeParam range)
         {
-            var key = $"{nameof(HttpResultRepository)} - {_userId} - {nameof(GetByEndPoint)} - {id}";
-            var cacheValue = _cache.Get<List<HttpResultLatencyDTO>>(key);
-            if (cacheValue != null)
-                return cacheValue;
-
-
             EndPoint endPoint = _context.EndPoint.Find(id);
             var query = from ep in _context.EndPoint
                         join ht in _context.HttpResult
                         on ep.Id equals ht.EndPointId
                         where
-                        ep.UserId == _userId &&
+                        ep.UserId == UserId() &&
                         ep.Id == endPoint.Id &&
                         ht.TimeStamp >= range.Start &&
                         ht.TimeStamp <= range.End
                         orderby ht.TimeStamp ascending
                         select _mapper.Map<HttpResult, HttpResultLatencyDTO>(ht);
 
-            var results = await query.ToListAsync();
-            _cache.SetCache(key, results,120);
-            return results;
+            return await query.ToListAsync(); ;
         }
 
-        public override List<HttpResult> GetAll()
+        public List<HttpResult> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        public override Task<int> PostAsync(HttpResult model)
+        public Task<int> PostAsync(HttpResult model)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<int> PutAsync(Guid id, HttpResult model)
+        public Task<int> PutAsync(Guid id, HttpResult model)
         {
             throw new NotImplementedException();
         }

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace UptimeAPI.Controllers.Repositories
 {
-    public class WebUserRepository : BaseRepository<WebUser>, IWebUserRepository
+    public class WebUserRepository : BaseRepository, IWebUserRepository
     {
         public WebUserRepository(UptimeContext context, IHttpContextAccessor httpcontext)
             : base(context, httpcontext) { }
@@ -19,19 +19,34 @@ namespace UptimeAPI.Controllers.Repositories
         {
             return _context.WebUser.FirstOrDefault(x => x.IdentityId.Equals(identityId));
         }
-        public override Task<int> PostAsync(WebUser model)
+        public Task<int> PostAsync(WebUser model)
         {
             _context.Add(model);
             return _context.SaveChangesAsync();
         }
 
-        public override List<WebUser> GetAll()
+        public List<WebUser> GetAll()
         {
             throw new NotImplementedException();
         }
 
 
-        public override Task<int> PutAsync(Guid id, WebUser model)
+        public Task<int> PutAsync(Guid id, WebUser model)
+        {
+            throw new NotImplementedException();
+        }
+
+        public WebUser Get(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Delete(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Exists(Guid id)
         {
             throw new NotImplementedException();
         }

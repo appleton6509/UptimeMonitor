@@ -45,8 +45,6 @@ namespace UptimeAPI.Controllers
         [HttpGet("Logs")]
         public  ActionResult<List<EndPointDetailsDTO>> GetAllResults([FromQuery] PaginationParam page, [FromQuery] ResultFilterParam filter)
         {
-            _httpResultRepository.GetAll(page, filter);
-
             if (page.RequestedPage > 0 & page.MaxPageSize > 0)
             {
                 PagedList<EndPointDetailsDTO> pagedList = (PagedList<EndPointDetailsDTO>)_httpResultRepository.GetAll(page, filter);
@@ -64,7 +62,7 @@ namespace UptimeAPI.Controllers
             if (!auth.Succeeded)
                 return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
 
-            return await _httpResultRepository.GetByEndPoint(id, range);
+            return await _httpResultRepository.GetByEndPointAsync(id, range);
         }
         #endregion
     }
