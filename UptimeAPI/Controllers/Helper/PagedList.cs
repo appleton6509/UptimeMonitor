@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Data.Repositories;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,23 +24,35 @@ namespace UptimeAPI.Controllers.Helper
             Pagination = pages;
             AddRange(query);
         }
+
         /// <summary>
         /// convert a IQueryable to a paged list
         /// </summary>
         /// <param name="query">the queriable object that will be converted to a paged list</param>
         /// <param name="pages">pagination parameters object</param>
         /// <returns></returns>
-        public static PagedList<T> ToPagedList(IQueryable<T> query, PaginationParam pages)
+        public static PagedList<T> ToPagedList(IFilterRules filter, PaginationParam pages)
         {
+           var query = (IQueryable < T >)filter.GetFilteredQuery();
+
             if (pages.MaxPageSize == 0 || pages.RequestedPage == 0)
                 throw new ArgumentException("Missing pagination parameters");
 
-            PaginationDTO page = new PaginationDTO();
-            page.MaxPageSize = pages.MaxPageSize;
-            page.RequestedPage = pages.RequestedPage;
-            page.TotalPages = (int)Math.Ceiling((query.Count() / (double)pages.MaxPageSize));
-            List<T> list = query.Skip((page.RequestedPage - 1) * page.MaxPageSize).Take(page.MaxPageSize).ToList();
+            PaginationDTO page = new PaginationDTO
+            {
+                MaxPageSize = pages.MaxPageSize,
+                RequestedPage = pages.RequestedPage,
+                TotalPages = (int)Math.Ceiling((query.Count() / (double)pages.MaxPageSize))
+            };
+            List<T> list = 
+                query.Skip((page.RequestedPage - 1) * page.MaxPageSize)
+                .Take(page.MaxPageSize)
+                .ToList();
             return new PagedList<T>(list, page);
+        }
+        public void AddPaginationToResponse(HttpResponse httpResponse )
+        {
+            httpResponse.Headers.Add("X-Pagination", JsonConvert.SerializeObject(this.Pagination));
         }
     }
 }

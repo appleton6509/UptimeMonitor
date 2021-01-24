@@ -30,6 +30,8 @@ namespace UptimeAPI.Controllers.Repositories.CacheRepositories
 
         public void Delete(Guid id)
         {
+            string key = $"{nameof(EndPointRepositoryCacheDecorator)}{nameof(GetAll)}";
+            _cache.Remove(key);
             _repo.Delete(id);
         }
 
@@ -75,11 +77,15 @@ namespace UptimeAPI.Controllers.Repositories.CacheRepositories
 
         public Task<int> PostAsync(EndPoint model)
         {
+            string key = $"{nameof(EndPointRepositoryCacheDecorator)}{nameof(GetAll)}";
+            _cache.Remove(key);
             return _repo.PostAsync(model);
         }
 
         public Task<int> PutAsync(Guid id, EndPoint model)
         {
+            string key = $"{nameof(EndPointRepositoryCacheDecorator)}{nameof(GetAll)}";
+            _cache.Remove(key);
             return _repo.PutAsync(id, model);
         }
 

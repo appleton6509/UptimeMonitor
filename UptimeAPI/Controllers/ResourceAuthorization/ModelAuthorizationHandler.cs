@@ -14,22 +14,38 @@ namespace UptimeAPI.Services
     /// <summary>
     /// provides authorization for a user to modify an existing resource
     /// </summary>
-    public class EndpointAuthorizationHandler : AuthorizationHandler<OperationAuthorizationRequirement, EndPoint>
+    public class ModelAuthorizationHandler : AuthorizationHandler<OperationAuthorizationRequirement, IBaseModel>
     {
-
-
-        protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, 
-            OperationAuthorizationRequirement requirement, EndPoint resource)
-        {
-           Guid.TryParse(context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid userId);
-
-            if (Object.Equals(resource, null) || Object.Equals(userId, null))
+          private readonly Dictionary<Type,string > _types = new Dictionary<Type,string >
             {
-               context.Fail();
+                {typeof(EndPoint),nameof(EndPoint)},
+                {typeof(HttpResult),nameof(HttpResult) }
+            };
+        protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, 
+            OperationAuthorizationRequirement requirement, IBaseModel resource)
+        {
+            bool resultFound = Guid.TryParse(context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid userId);
+            if (Object.Equals(resource, null) || !resultFound)
+            {
+                context.Fail();
+                return Task.CompletedTask;
             }
 
-            else if (resource.UserId == userId)
+            bool isSuccessful = false;
+            switch (_types[resource.GetType()])
+            {
+                case nameof(EndPoint):
+                    {
+                        if ((resource as EndPoint).UserId == userId)
+                            isSuccessful = true;
+                        break;
+                    }
+                default:
+                    break;
+            }
+            if (isSuccessful)
                 context.Succeed(requirement);
+
             return Task.CompletedTask;
         }
     }

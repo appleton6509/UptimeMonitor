@@ -8,38 +8,37 @@ using UptimeAPI.Controllers.QueryParams;
 
 namespace UptimeAPI.Controllers.Helper
 {
-    public class ResultFilterRules
+    public class HttpResultFilterRules : IFilterRules
     {
         private ResultFilterParam _filter;
-        public IQueryable<EndPointDetailsDTO> Query 
-        {
-            get
-            {
-                return this._query;
-            }  
-        }
         private IQueryable<EndPointDetailsDTO> _query;
-        public ResultFilterRules(ResultFilterParam filter, IQueryable<EndPointDetailsDTO> query)
+
+        public HttpResultFilterRules(ResultFilterParam filter, IQueryable<EndPointDetailsDTO> query)
         {
             _filter = filter;
             _query = query;
         }
-        public IQueryable<EndPointDetailsDTO> ApplyFilters()
+        public IQueryable GetFilteredQuery()
         {
             return this.FilterReachable().FilterSortBy()._query;
         }
-        private ResultFilterRules FilterReachable()
+        public IQueryable GetQuery()
+        {
+            return this._query;
+        }
+
+        private HttpResultFilterRules FilterReachable()
         {
             if (_filter.Reachable.HasValue)
                 _query = _query.Where(x => x.IsReachable == _filter.Reachable.Value);
             return this;
         }
-        private ResultFilterRules FilterSortBy()
+        private HttpResultFilterRules FilterSortBy()
         {
-           return this.SortByDescending().SortByAscending();
+            return this.SortByDescending().SortByAscending();
         }
 
-        private ResultFilterRules SortByDescending()
+        private HttpResultFilterRules SortByDescending()
         {
             if (_filter.OrderBy == OrderBy.Descending || _filter.OrderBy == OrderBy.None)
             {
@@ -67,7 +66,7 @@ namespace UptimeAPI.Controllers.Helper
             }
             return this;
         }
-        private ResultFilterRules SortByAscending()
+        private HttpResultFilterRules SortByAscending()
         {
             if (_filter.OrderBy == OrderBy.Ascending)
             {

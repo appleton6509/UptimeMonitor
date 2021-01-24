@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Data.Models
 {
-    public class BaseModel
+    public class BaseModel : IBaseModel
     {
         public Guid Id { get; set; }
     }

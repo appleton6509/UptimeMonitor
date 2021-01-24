@@ -44,12 +44,11 @@ namespace UptimeAPI.Controllers.Repositories
                     TimeStamp = ht.TimeStamp
                 };
 
-            var filteredQuery = new ResultFilterRules(filter, query).ApplyFilters();
-            List<EndPointDetailsDTO> results;
-            if (page.RequestedPage > 0 & page.MaxPageSize > 0)
-                results = PagedList<EndPointDetailsDTO>.ToPagedList(filteredQuery, page);
-            else
-                results = filteredQuery.ToList();
+            if (page.MaxPageSize == 0 || page.RequestedPage == 0)
+                return query.ToList();
+
+            var filteredQuery = new HttpResultFilterRules(filter, query);
+            var results = PagedList<EndPointDetailsDTO>.ToPagedList(filteredQuery, page);
             return results;
         }
         public async Task<List<HttpResultLatencyDTO>> GetByEndPointAsync(Guid id, TimeRangeParam range)

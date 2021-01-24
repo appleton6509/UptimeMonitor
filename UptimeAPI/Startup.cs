@@ -53,6 +53,8 @@ namespace UptimeAPI
             services.AddScoped<HttpResultRepository>();
             services.AddScoped<IWebUserRepository, WebUserRepository>();
 
+
+
             //mapper
             services.AddAutoMapper(typeof(MappingProfile));
 
@@ -82,7 +84,7 @@ namespace UptimeAPI
                 options.AddPolicy(nameof(Operations), policy => policy.Requirements.Add(new OperationAuthorizationRequirement()));
                 options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
             });
-            services.AddSingleton<IAuthorizationHandler, EndpointAuthorizationHandler>();
+            services.AddSingleton<IAuthorizationHandler, ModelAuthorizationHandler>();
 
             //Register swagger 
             services.AddSwaggerGen(doc =>

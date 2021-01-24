@@ -10,7 +10,6 @@ using UptimeAPI.Controllers.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using UptimeAPI.Services;
 using UptimeAPI.Controllers.Repositories;
-using Microsoft.Extensions.Logging;
 
 namespace UptimeAPI.Controllers
 {
@@ -22,17 +21,14 @@ namespace UptimeAPI.Controllers
         #region Properties  / Constructor
         private readonly IAuthorizationService _authorizationService;
         private readonly IEndPointRepository _endPointRepository;
-        private readonly ILogger<EndPointsController> _logger;
 
 
         public EndPointsController(
-            ILogger<EndPointsController> logger
-            , IAuthorizationService authorizationService
+             IAuthorizationService authorizationService
             , IEndPointRepository endPoint)
         {
             _authorizationService = authorizationService;
             _endPointRepository = endPoint;
-            _logger = logger;
         }
         #endregion
 
@@ -48,17 +44,16 @@ namespace UptimeAPI.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutEndPoint(Guid id, EndPoint endPoint)
+        public async Task<IActionResult> PutEndPoint(Guid id, EndPoint ep)
         {
-
-            EndPoint ep = _endPointRepository.Get(id);
-            AuthorizationResult auth = await _authorizationService.AuthorizeAsync(User, ep, Operations.Update);
+            var endPoint = _endPointRepository.Get(id);
+            AuthorizationResult auth = await _authorizationService.AuthorizeAsync(User, endPoint, Operations.Update);
             if (!auth.Succeeded)
-                return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
+                return new ForbidResult();
 
             try
             {
-                await _endPointRepository.PutAsync(id, endPoint);
+                await _endPointRepository.PutAsync(id, ep);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -90,13 +85,12 @@ namespace UptimeAPI.Controllers
 
         // DELETE: api/EndPoints/5DFBBC20-D61E-4506-58DE-08D8B0516C01
         [HttpDelete("{id}")]
-        public async Task<ActionResult<EndPoint>> DeleteEndPoint(Guid id)
+        public  ActionResult<EndPoint> DeleteEndPoint(Guid id)
         {
             var endPoint = _endPointRepository.Get(id);
-
-            AuthorizationResult auth = await _authorizationService.AuthorizeAsync(User, endPoint, Operations.Delete);
+            AuthorizationResult auth =  _authorizationService.AuthorizeAsync(User, endPoint, Operations.Update).Result;
             if (!auth.Succeeded)
-                return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
+                return new ForbidResult();
 
             _endPointRepository.Delete(id);
 
@@ -128,14 +122,14 @@ namespace UptimeAPI.Controllers
 
         //api/EndPoints/Statistics/5DFBBC20-D61E-4506-58DE-08D8B0516C01
         [HttpGet("Statistics/{id}")]
-        public async Task<ActionResult<EndPointStatisticsDTO>> GetEndPointStatistics(Guid id)
+        public  ActionResult<EndPointStatisticsDTO> GetEndPointStatistics(Guid id)
         {
             var endPoint = _endPointRepository.Get(id);
-            AuthorizationResult auth = await _authorizationService.AuthorizeAsync(User, endPoint, Operations.Update);
+            AuthorizationResult auth = _authorizationService.AuthorizeAsync(User, endPoint, Operations.Update).Result;
             if (!auth.Succeeded)
-                return BadRequest(Error.Auth[AuthErrors.NoResourceAccess]);
+                return new ForbidResult();
 
-            return _endPointRepository.GetEndPointStatistics(endPoint);
+            return _endPointRepository.GetEndPointStatistics((EndPoint)endPoint);
         }
         #endregion Custom
     }
