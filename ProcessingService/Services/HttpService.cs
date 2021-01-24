@@ -12,7 +12,7 @@ namespace ProcessingService.Services
         private string SetHostName(string hostname)
         {
             string host = hostname;
-            if (!hostname.Trim().StartsWith("http://"))
+            if (!hostname.Trim().StartsWith("http://") || !hostname.Trim().StartsWith("https://"))
                 host = String.Concat("http://", hostname);
             return host;
         } 

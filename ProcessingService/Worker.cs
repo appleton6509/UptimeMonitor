@@ -23,7 +23,7 @@ namespace ProcessingService
         /// <summary>
         /// interval (in milliseconds) between running of app
         /// </summary>
-        private readonly int _intervalBetweenPing = 60000;
+        private readonly int _intervalBetweenPing = 1000;
         /// <summary>
         /// Number of service workers that will run simultaneously
         /// </summary>
@@ -44,7 +44,7 @@ namespace ProcessingService
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                    await StartWork();
                 _logger.LogInformation("Worker done at: {time}", DateTimeOffset.Now);
-                await Task.Delay(10000, stoppingToken);
+
             }
         }
 
