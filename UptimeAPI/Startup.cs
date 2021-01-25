@@ -47,13 +47,9 @@ namespace UptimeAPI
             else
                 services.AddDbContext<UptimeContext>(options =>
                         options.UseSqlServer(Configuration.GetConnectionString("Production"), s => s.MigrationsAssembly("Data")));
-            services.AddScoped<IEndPointRepository, EndPointRepositoryCacheDecorator>();
-            services.AddScoped<EndPointRepository>();
-            services.AddScoped<IHttpResultRepository, HttpResultRepositoryCacheDecorator>();
-            services.AddScoped<HttpResultRepository>();
+            services.AddScoped<IEndPointRepository, EndPointRepository>();
+            services.AddScoped<IHttpResultRepository, HttpResultRepository>();
             services.AddScoped<IWebUserRepository, WebUserRepository>();
-
-
 
             //mapper
             services.AddAutoMapper(typeof(MappingProfile));
@@ -103,7 +99,7 @@ namespace UptimeAPI
             });
 
             //caching
-            services.AddMemoryCache();
+            //services.AddMemoryCache();
 
         }
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

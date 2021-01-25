@@ -23,7 +23,7 @@ namespace ProcessingService
         /// <summary>
         /// interval (in milliseconds) between running of app
         /// </summary>
-        private readonly int _intervalBetweenPing = 1000;
+        private readonly int _intervalBetweenPing = 60000;
         /// <summary>
         /// Number of service workers that will run simultaneously
         /// </summary>
@@ -42,20 +42,27 @@ namespace ProcessingService
             while (!stoppingToken.IsCancellationRequested)
             {
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                   await StartWork();
+                await StartWork();
                 _logger.LogInformation("Worker done at: {time}", DateTimeOffset.Now);
-
+                var task = Task.Delay(_intervalBetweenPing);
+                await CheckForNewEndPoints(task);
             }
         }
+
 
         private async Task StartWork()
         {
             List<Task> tasks = new List<Task>();
             CreateTasks(tasks);
-            await WaitForProcessResults(tasks);
+            await MonitorTaskCompletion(tasks);
         }
 
-        private async Task WaitForProcessResults(List<Task> tasks)
+        /// <summary>
+        /// monitors task completions and returns once done.
+        /// </summary>
+        /// <param name="tasks"></param>
+        /// <returns></returns>
+        private async Task MonitorTaskCompletion(List<Task> tasks)
         {
             bool notDone = true;
             while (notDone)
@@ -63,10 +70,13 @@ namespace ProcessingService
                 notDone = tasks.All(x => x.IsCompleted);
                 _logger.LogInformation("Waiting for tasks to finish, number left: " + tasks.Count, DateTimeOffset.Now);
 
-                await Task.Delay(_intervalBetweenPing);
+                await Task.Delay(1000);
             }
         }
-
+        /// <summary>
+        /// creates tasks on seperate threads as they become avaliable
+        /// </summary>
+        /// <param name="tasks"></param>
         private async void CreateTasks(List<Task> tasks)
         {
             List<EndPoint> data = _db.Get();
@@ -86,11 +96,39 @@ namespace ProcessingService
                 if (tasks.Count < NumberOfWorkers)
                         tasks.Add(Task.Run(() =>
                         {
-                             ResponseResult res = _proc.CheckConnection(ep);
-                            HttpResult result = _map.Map(res);
-                            _db.Create(result);
+                            CheckEndPointConnection(ep);
                         }));
             }
+        }
+        /// <summary>
+        /// Checks for newly added endpoints, if found, makes a request and adds to database
+        /// </summary>
+        /// <param name="task"></param>
+        /// <returns></returns>
+        private async Task CheckForNewEndPoints(Task task)
+        {
+            while (!task.IsCompleted)
+            {
+                var eps = await _db.FindNewEndpoints();
+                if (eps.Count() > 0)
+                {
+                    _logger.LogInformation("New EndPoint(s) added, checking connection", DateTimeOffset.Now);
+                    foreach (EndPoint ep in eps)
+                        CheckEndPointConnection(ep);
+                    await Task.Delay(1000); 
+                }
+
+            }
+        }
+        /// <summary>
+        /// contacts the endpoint and stores the response in the database
+        /// </summary>
+        /// <param name="ep"></param>
+        private void CheckEndPointConnection(EndPoint ep)
+        {
+            ResponseResult res = _proc.CheckConnection(ep);
+            HttpResult result = _map.Map(res);
+            _db.Create(result);
         }
     }
 }

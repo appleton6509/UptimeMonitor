@@ -1,5 +1,7 @@
 ﻿using Data.Models;
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ProcessingService.Services
 {
@@ -7,5 +9,7 @@ namespace ProcessingService.Services
     {
         void Create(HttpResult result);
         List<EndPoint> Get();
+        EndPoint Get(Guid id);
+         Task<List<EndPoint>> FindNewEndpoints();
     }
 }
