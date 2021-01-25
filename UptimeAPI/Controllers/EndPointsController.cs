@@ -85,14 +85,19 @@ namespace UptimeAPI.Controllers
 
         // DELETE: api/EndPoints/5DFBBC20-D61E-4506-58DE-08D8B0516C01
         [HttpDelete("{id}")]
-        public  ActionResult<EndPoint> DeleteEndPoint(Guid id)
+        public async Task<ActionResult<EndPoint>> DeleteEndPoint(Guid id)
         {
             var endPoint = _endPointRepository.Get(id);
-            AuthorizationResult auth =  _authorizationService.AuthorizeAsync(User, endPoint, Operations.Update).Result;
+            AuthorizationResult auth =  await _authorizationService.AuthorizeAsync(User, endPoint, Operations.Update);
             if (!auth.Succeeded)
                 return new ForbidResult();
-
-            _endPointRepository.Delete(id);
+            try
+            {
+                await _endPointRepository.DeleteAsync(id);
+            } catch
+            {
+                return BadRequest();
+            }
 
             return Ok();
         }

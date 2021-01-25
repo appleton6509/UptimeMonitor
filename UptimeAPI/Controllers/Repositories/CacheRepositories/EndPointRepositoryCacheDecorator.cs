@@ -29,9 +29,9 @@ namespace UptimeAPI.Controllers.Repositories.CacheRepositories
             _cache = cache;
         }
 
-        public void Delete(Guid id)
+        public Task<int> DeleteAsync(Guid id)
         {
-            _repo.Delete(id);
+            return _repo.DeleteAsync(id);
         }
 
         public bool Exists(Guid id)

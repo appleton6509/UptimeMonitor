@@ -12,7 +12,7 @@ namespace Data.Repositories
         public Task<int> PostAsync(T model);
         public T Get(Guid id);
         public List<T> GetAll();
-        public void Delete(Guid id);
+        public Task<int> DeleteAsync(Guid id);
         public bool Exists(Guid id);
         public Guid UserId();
 

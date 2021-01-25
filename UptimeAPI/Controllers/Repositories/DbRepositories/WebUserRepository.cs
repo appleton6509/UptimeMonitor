@@ -41,7 +41,7 @@ namespace UptimeAPI.Controllers.Repositories
             throw new NotImplementedException();
         }
 
-        public void Delete(Guid id)
+        public Task<int> DeleteAsync(Guid id)
         {
             throw new NotImplementedException();
         }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Data;
+using Data.Models;
 using Data.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
@@ -29,6 +30,20 @@ namespace UptimeAPI.Controllers.Repositories.CacheRepositories
             _repo = repo;
         }
 
+        public Task<int> DeleteAsync(Guid id)
+        {
+            return _repo.DeleteAsync(id);
+        }
+
+        public bool Exists(Guid id)
+        {
+            return _repo.Exists(id);
+        }
+
+        public HttpResult Get(Guid id)
+        {
+            return _repo.Get(id);
+        }
 
         public List<EndPointDetailsDTO> GetAll(PaginationParam page, ResultFilterParam filter)
         {
@@ -42,6 +57,11 @@ namespace UptimeAPI.Controllers.Repositories.CacheRepositories
             return data;
         }
 
+        public List<HttpResult> GetAll()
+        {
+            return _repo.GetAll();
+        }
+
         public async Task<List<HttpResultLatencyDTO>> GetByEndPointAsync(Guid id, TimeRangeParam range)
         {
             var key = $"{nameof(HttpResultRepositoryCacheDecorator)}{UserId()}{nameof(GetByEndPointAsync)}{id}";
@@ -52,6 +72,16 @@ namespace UptimeAPI.Controllers.Repositories.CacheRepositories
             data = await _repo.GetByEndPointAsync(id, range);
             _cache.SetCache(key, data);
             return data;
+        }
+
+        public Task<int> PostAsync(HttpResult model)
+        {
+            return _repo.PostAsync(model);
+        }
+
+        public Task<int> PutAsync(Guid id, HttpResult model)
+        {
+            return _repo.PutAsync(id, model);
         }
     }
 }

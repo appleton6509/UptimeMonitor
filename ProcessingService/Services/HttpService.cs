@@ -8,15 +8,6 @@ namespace ProcessingService.Services
 {
     public class HttpService : IProcessor
     {
-
-        private string SetHostName(string hostname)
-        {
-            string host = hostname;
-            if (!hostname.Trim().StartsWith("http://") || !hostname.Trim().StartsWith("https://"))
-                host = String.Concat("http://", hostname);
-            return host;
-        } 
-
         private bool IsHostNameValid(string hostname)
         {
             if (Object.Equals(hostname, null)) return false;
@@ -36,7 +27,7 @@ namespace ProcessingService.Services
                     StatusMessage = "Invalid hostname: " + ep.Ip,
                 };
             }
-            string host = SetHostName(ep.Ip);
+            string host = ep.Ip;
             ResponseResult result = new ResponseResult();
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(host);
             try

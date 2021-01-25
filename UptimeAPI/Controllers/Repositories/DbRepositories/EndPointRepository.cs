@@ -147,11 +147,11 @@ namespace Data.Repositories
             return stats;
         }
 
-        public void Delete(Guid id)
+        public async Task<int> DeleteAsync(Guid id)
         {
             var model = _context.EndPoint.Find(id);
             _context.Remove(model);
-            _context.SaveChanges();
+            return await _context.SaveChangesAsync();
         }
 
         public bool Exists(Guid id)
