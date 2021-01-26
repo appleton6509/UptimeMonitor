@@ -49,7 +49,7 @@ namespace ProcessingService.Services
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
                 HttpResponseMessage res = await _client.SendAsync(message);
-                watch.Stop();
+               watch.Stop();
                 TimeSpan span = watch.Elapsed;
                 if (!res.IsSuccessStatusCode)
                     result.IsReachable = false;

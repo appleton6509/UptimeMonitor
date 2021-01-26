@@ -41,6 +41,7 @@ namespace ProcessingService
                         };
                         return new HttpClient(handler, true)
                         {
+                            
                             Timeout = new TimeSpan(0, 0, 10)
                         };
                     });
