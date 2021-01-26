@@ -18,7 +18,7 @@ namespace ProcessingService
     {
         private readonly ILogger<Worker> _logger;
         private readonly IDatabaseService _db;
-        private readonly IProcessor _proc;
+        private readonly IHttpService _proc;
         private readonly IMapService _map;
         /// <summary>
         /// interval (in milliseconds) between running of app
@@ -29,7 +29,7 @@ namespace ProcessingService
         /// </summary>
         private int NumberOfWorkers { get; set; } = 5000;
 
-        public Worker(ILogger<Worker> logger,IProcessor processor, IDatabaseService db, IMapService map)
+        public Worker(ILogger<Worker> logger,IHttpService processor, IDatabaseService db, IMapService map)
         {
             _logger = logger;
             _proc = processor;
@@ -94,9 +94,9 @@ namespace ProcessingService
                     taskCount = tasks.Count;
                 }
                 if (tasks.Count < NumberOfWorkers)
-                        tasks.Add(Task.Run(() =>
+                        tasks.Add(Task.Run( async () =>
                         {
-                            CheckEndPointConnection(ep);
+                            await CheckEndPointConnection(ep);
                         }));
             }
         }
@@ -117,7 +117,7 @@ namespace ProcessingService
                     {
                         _logger.LogInformation("New EndPoint(s) added, checking connection", DateTimeOffset.Now);
                         foreach (EndPoint ep in eps)
-                            CheckEndPointConnection(ep);
+                            await CheckEndPointConnection(ep);
                         await Task.Delay(1000);
                     }
                 } catch (Exception e)
@@ -130,11 +130,11 @@ namespace ProcessingService
         /// contacts the endpoint and stores the response in the database
         /// </summary>
         /// <param name="ep"></param>
-        private void CheckEndPointConnection(EndPoint ep)
+        private async Task CheckEndPointConnection(EndPoint ep)
         {
             try
             {
-                ResponseResult res = _proc.CheckConnection(ep);
+                ResponseResult res = await _proc.CheckConnection(ep);
                 HttpResult result = _map.Map(res);
                 _db.Create(result);
             } catch (Exception e)

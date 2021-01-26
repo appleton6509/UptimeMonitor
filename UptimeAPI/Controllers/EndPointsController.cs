@@ -5,11 +5,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Data.Models;
-using UptimeAPI.Messaging;
 using UptimeAPI.Controllers.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using UptimeAPI.Services;
 using UptimeAPI.Controllers.Repositories;
+using System.Web;
+using System.Net.Http;
 
 namespace UptimeAPI.Controllers
 {
@@ -21,7 +22,11 @@ namespace UptimeAPI.Controllers
         #region Properties  / Constructor
         private readonly IAuthorizationService _authorizationService;
         private readonly IEndPointRepository _endPointRepository;
-
+        static readonly HttpClientHandler httpClientHandler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; }
+                };
+        static readonly HttpClient client = new HttpClient(httpClientHandler, true) { Timeout = new TimeSpan(0, 0, 3) };
 
         public EndPointsController(
              IAuthorizationService authorizationService
@@ -113,9 +118,25 @@ namespace UptimeAPI.Controllers
         }
         // GET: api/EndPoints/ConnectionStatus
         [HttpGet("ConnectionStatus")]
-            public  ActionResult<List<EndPointOfflineOnlineDTO>> GetEndPointsStatus()
+        public ActionResult<List<EndPointOfflineOnlineDTO>> GetEndPointsStatus()
         {
             return _endPointRepository.GetEndPointsStatus();
+        }
+
+        // GET: api/EndPoints/OnlineStatus/https://www.brian.com
+        [HttpGet("OnlineStatus/{url}")]
+        public  ActionResult<bool> GetOnlineStatus(string url)
+        {
+            try
+            {
+                string decodedUrl = HttpUtility.UrlDecode(url);
+                HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, decodedUrl);
+                HttpResponseMessage res = client.Send(message);
+                return Ok(res.IsSuccessStatusCode);
+            } catch (Exception e)
+            {
+                return Ok(false);
+            }
         }
 
         //api/EndPoints/Statistics
