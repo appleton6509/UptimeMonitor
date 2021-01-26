@@ -109,15 +109,21 @@ namespace ProcessingService
         {
             while (!task.IsCompleted)
             {
-                var eps = await _db.FindNewEndpoints();
-                if (eps.Count() > 0)
+                try
                 {
-                    _logger.LogInformation("New EndPoint(s) added, checking connection", DateTimeOffset.Now);
-                    foreach (EndPoint ep in eps)
-                        CheckEndPointConnection(ep);
-                    await Task.Delay(1000); 
-                }
+                    var eps = await _db.FindNewEndpoints();
 
+                    if (eps.Count() > 0)
+                    {
+                        _logger.LogInformation("New EndPoint(s) added, checking connection", DateTimeOffset.Now);
+                        foreach (EndPoint ep in eps)
+                            CheckEndPointConnection(ep);
+                        await Task.Delay(1000);
+                    }
+                } catch (Exception e)
+                {
+                    _logger.LogError(e.InnerException.Message);
+                }
             }
         }
         /// <summary>
@@ -126,9 +132,16 @@ namespace ProcessingService
         /// <param name="ep"></param>
         private void CheckEndPointConnection(EndPoint ep)
         {
-            ResponseResult res = _proc.CheckConnection(ep);
-            HttpResult result = _map.Map(res);
-            _db.Create(result);
+            try
+            {
+                ResponseResult res = _proc.CheckConnection(ep);
+                HttpResult result = _map.Map(res);
+                _db.Create(result);
+            } catch (Exception e)
+            {
+                _logger.LogError($"{ep} " + e.InnerException.Message);
+            }
+
         }
     }
 }

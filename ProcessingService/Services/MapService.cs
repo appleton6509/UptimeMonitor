@@ -10,16 +10,18 @@ namespace ProcessingService.Services
     {
         public HttpResult Map(ResponseResult result)
         {
-            if (Object.Equals(result, null)) return null;
+            if(result is null)
+                return null;
 
             HttpResult http = new HttpResult()
             {
-                EndPointId = (Guid)result?.Id,
+                EndPointId = result.Id != null ? (Guid)result.Id : Guid.Empty,
                 Latency = result.Latency,
                 IsReachable = result.IsReachable,
                 StatusMessage = result.StatusMessage,
                 TimeStamp = DateTime.UtcNow
             };
+
             return http;
         }
     }

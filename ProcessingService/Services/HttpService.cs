@@ -28,11 +28,14 @@ namespace ProcessingService.Services
                 };
             }
             string host = ep.Ip;
-            ResponseResult result = new ResponseResult();
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(host);
+            ResponseResult result = new ResponseResult
+            {
+                IsReachable = true,
+                Id = ep.Id
+            };
             try
             {
-                result.Id = ep.Id;
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(host);
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
                 using HttpWebResponse response = (HttpWebResponse)request.GetResponse();
@@ -40,16 +43,16 @@ namespace ProcessingService.Services
                 TimeSpan span = watch.Elapsed;
                 result.Latency = span.Milliseconds / 10;
                 result.StatusMessage = response.StatusCode.ToString();
-                result.IsReachable = true;
+
             }
             catch (Exception e)
             {
                 result.IsReachable = false;
                 result.StatusMessage = e.Message;
             }
+            
             return result;
         }
-
     }
 }
 

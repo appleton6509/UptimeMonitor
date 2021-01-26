@@ -17,6 +17,8 @@ namespace Data.Models
         [StringLength(60, ErrorMessage = "{0} must be a minimum of {2} characters", MinimumLength = 5)]
         public string Ip { get; set; }
 
+        public bool? NotifyOnFailure { get; set; }
+
         public virtual ICollection<HttpResult> HttpResult { get; set; }
 
     }
