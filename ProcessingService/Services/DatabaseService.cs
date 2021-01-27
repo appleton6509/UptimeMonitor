@@ -28,13 +28,13 @@ namespace ProcessingService.Services
             context.HttpResult.Add(result);
             context.SaveChanges();
         }
-        public async Task<List<EndPoint>> FindNewEndpoints()
+        public List<EndPoint> FindNewEndpoints()
         {
             using var context = _contextFactory.CreateDbContext();
-            var newEndpoint = await context.EndPoint
+            var newEndpoint =  context.EndPoint
                 .Select(x => x.Id)
                 .Except(context.HttpResult.Select(y => y.EndPointId))
-                .ToListAsync();
+                .ToList();
             List<EndPoint> endPoints = new List<EndPoint>();
             foreach(Guid id in newEndpoint)
                 endPoints.Add(Get(id));
@@ -42,7 +42,7 @@ namespace ProcessingService.Services
             return endPoints;
 
         }
-        public List<EndPoint> Get()
+        public List<EndPoint> GetAll()
         {
             using var context = _contextFactory.CreateDbContext();
             return context.EndPoint.ToList();

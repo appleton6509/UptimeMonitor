@@ -30,7 +30,6 @@ namespace ProcessingService
                         else
                             options.UseSqlServer(hostContext.Configuration.GetSection("ConnectionStrings")["Production"]);
                     });
-                    services.AddSingleton<IMapService, MapService>();
                     services.AddTransient<IDatabaseService, DatabaseService>();
                     services.AddTransient<IHttpService, HttpService>();
                     services.AddSingleton<HttpClient>(s =>
@@ -40,10 +39,7 @@ namespace ProcessingService
                             ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; }
                         };
                         return new HttpClient(handler, true)
-                        {
-                            
-                            Timeout = new TimeSpan(0, 0, 10)
-                        };
+                            { Timeout = new TimeSpan(0, 0, 10) };
                     });
                 });
     }

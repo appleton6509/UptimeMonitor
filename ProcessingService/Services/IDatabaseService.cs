@@ -8,8 +8,8 @@ namespace ProcessingService.Services
     public interface IDatabaseService
     {
         void Create(HttpResult result);
-        List<EndPoint> Get();
+        List<EndPoint> GetAll();
         EndPoint Get(Guid id);
-         Task<List<EndPoint>> FindNewEndpoints();
+         List<EndPoint> FindNewEndpoints();
     }
 }

@@ -1,14 +1,12 @@
-using Data;
-using Data.Models;
-using Microsoft.Extensions.DependencyInjection;
+
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ProcessingService.Models;
 using ProcessingService.Services;
+using ProcessingService.Services.TaskManager;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.NetworkInformation;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,10 +14,9 @@ namespace ProcessingService
 {
     public class Worker : BackgroundService
     {
-        private readonly ILogger<Worker> _logger;
+        private readonly ILogger _logger;
         private readonly IDatabaseService _db;
-        private readonly IHttpService _proc;
-        private readonly IMapService _map;
+        private readonly IHttpService _http;
         /// <summary>
         /// interval (in milliseconds) between running of app
         /// </summary>
@@ -29,119 +26,77 @@ namespace ProcessingService
         /// </summary>
         private int NumberOfWorkers { get; set; } = 5000;
 
-        public Worker(ILogger<Worker> logger,IHttpService processor, IDatabaseService db, IMapService map)
+        public Worker(ILogger<Worker> logger, IHttpService processor, IDatabaseService db)
         {
             _logger = logger;
-            _proc = processor;
+            _http = processor;
             _db = db;
-            _map = map;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                await StartWork();
-                _logger.LogInformation("Worker done at: {time}", DateTimeOffset.Now);
-                var task = Task.Delay(_intervalBetweenPing);
-                await CheckForNewEndPoints(task);
+                _logger.LogTrace("Worker running at: {time}", DateTimeOffset.Now);
+
+                var data = _db.GetAll();
+                ProtocolHandler handler = new ProtocolHandler(_logger);
+                ProtocolFactory factory = new ProtocolFactory(_http);
+                List<IProtocol> tasks = factory.GetTasks(data);
+                handler.AddRange(tasks);
+                handler.Start();
+                Task delay = Task.Run(async () => await Task.Delay(_intervalBetweenPing));
+                Task addNewEndPoints = Task.Run(() => FindNewEndPoints(handler, factory, delay));
+                Task processResults = Task.Run(() => ProcessResults(handler, delay));
+                delay.Wait();
+                handler.Stop();
+                addNewEndPoints.Wait();
+                processResults.Wait();
+
             }
         }
 
-
-        private async Task StartWork()
+        private async Task ProcessResults(ProtocolHandler handler, Task delay)
         {
-            List<Task> tasks = new List<Task>();
-            CreateTasks(tasks);
-            await MonitorTaskCompletion(tasks);
-        }
-
-        /// <summary>
-        /// monitors task completions and returns once done.
-        /// </summary>
-        /// <param name="tasks"></param>
-        /// <returns></returns>
-        private async Task MonitorTaskCompletion(List<Task> tasks)
-        {
-            bool notDone = true;
-            while (notDone)
+            while (!delay.IsCompleted)
             {
-                notDone = tasks.All(x => x.IsCompleted);
-                _logger.LogInformation("Waiting for tasks to finish, number left: " + tasks.Count, DateTimeOffset.Now);
-
-                await Task.Delay(1000);
-            }
-        }
-        /// <summary>
-        /// creates tasks on seperate threads as they become avaliable
-        /// </summary>
-        /// <param name="tasks"></param>
-        private async void CreateTasks(List<Task> tasks)
-        {
-            List<EndPoint> data = _db.Get();
-            _logger.LogInformation("Endpoint count: " + data.Count, DateTimeOffset.Now);
-            foreach (var ep in data)
-            {
-                if (Object.Equals(ep, null) || Object.Equals(ep.Ip, null))
-                    continue;
-
-                int taskCount = tasks.Count;
-                while (taskCount >= NumberOfWorkers)
+                while (handler.ResultCount > 0)
                 {
-                    await Task.Delay(1000);
-                    tasks.RemoveAll(x => x.IsCompleted);
-                    taskCount = tasks.Count;
-                }
-                if (tasks.Count < NumberOfWorkers)
-                        tasks.Add(Task.Run( async () =>
+                    _logger.LogInformation($"adding {handler.ResultCount} records to db");
+                    List<TaskResult> results = handler.GetAndClearResults();
+                    results.ForEach(x =>
+                    {
+                        try
                         {
-                            await CheckEndPointConnection(ep);
-                        }));
+                            _db.Create(new HttpResult(x.Response));
+                        }
+                        catch (Exception e)
+                        {
+                            _logger.LogError("Error adding to DB: " + e.Message);
+                        }
+                    });
+                    await Task.Delay(1000);
+                }
             }
         }
-        /// <summary>
-        /// Checks for newly added endpoints, if found, makes a request and adds to database
-        /// </summary>
-        /// <param name="task"></param>
-        /// <returns></returns>
-        private async Task CheckForNewEndPoints(Task task)
+
+        private async Task FindNewEndPoints(ProtocolHandler handler, ProtocolFactory factory, Task delay)
         {
-            while (!task.IsCompleted)
+            while (!delay.IsCompleted)
             {
                 try
                 {
-                    var eps = await _db.FindNewEndpoints();
-
-                    if (eps.Count() > 0)
-                    {
-                        _logger.LogInformation("New EndPoint(s) added, checking connection", DateTimeOffset.Now);
-                        foreach (EndPoint ep in eps)
-                            await CheckEndPointConnection(ep);
-                        await Task.Delay(1000);
-                    }
-                } catch (Exception e)
-                {
-                    _logger.LogError(e.InnerException.Message);
+                    List<IProtocol> newTasks = factory.GetTasks(_db.FindNewEndpoints());
+                    if (newTasks.Count > 0)
+                        handler.AddRange(newTasks);
                 }
+                catch (Exception e)
+                {
+                    _logger.LogError("Error finding new endpoings in DB: " + e.Message);
+                }
+                await Task.Delay(2000);
             }
-        }
-        /// <summary>
-        /// contacts the endpoint and stores the response in the database
-        /// </summary>
-        /// <param name="ep"></param>
-        private async Task CheckEndPointConnection(EndPoint ep)
-        {
-            try
-            {
-                ResponseResult res = await _proc.CheckConnection(ep);
-                HttpResult result = _map.Map(res);
-                _db.Create(result);
-            } catch (Exception e)
-            {
-                _logger.LogError($"{ep} " + e.InnerException.Message);
-            }
-
         }
     }
 }

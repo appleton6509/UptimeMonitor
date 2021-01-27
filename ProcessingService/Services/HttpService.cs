@@ -1,5 +1,4 @@
-﻿using Data.Models;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using ProcessingService.Models;
 using System;
 using System.Diagnostics;
@@ -10,7 +9,7 @@ using System.Threading.Tasks;
 namespace ProcessingService.Services
 {
     public class HttpService : IHttpService
-    {       
+    {
         private readonly HttpClient _client;
         private readonly ILogger<HttpService> _logger;
         public HttpService(HttpClient client, ILogger<HttpService> logger)
@@ -49,11 +48,10 @@ namespace ProcessingService.Services
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
                 HttpResponseMessage res = await _client.SendAsync(message);
-               watch.Stop();
-                TimeSpan span = watch.Elapsed;
+                watch.Stop();
                 if (!res.IsSuccessStatusCode)
                     result.IsReachable = false;
-                result.Latency = span.Milliseconds / 10;
+                result.Latency = watch.Elapsed.Milliseconds / 10;
                 result.StatusMessage = res.ReasonPhrase;
             }
             catch (HttpRequestException e)
@@ -61,13 +59,14 @@ namespace ProcessingService.Services
                 result.IsReachable = false;
                 result.StatusMessage = e.Message;
                 _logger.LogInformation($"Unable to reach {host} with message: " + e.Message);
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 result.IsReachable = false;
                 result.StatusMessage = "Internal error: " + e.Message;
                 _logger.LogCritical($"Error occured in request to {host} with message: " + e.Message);
             }
-            
+
             return result;
         }
     }
