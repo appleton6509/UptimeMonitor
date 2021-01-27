@@ -48,7 +48,7 @@ namespace Data.Repositories
         {
             var query =
                 from ep in _context.EndPoint
-                join ht in _context.HttpResult
+                join ht in _context.ResultData
                 on ep.Id equals ht.EndPointId
                 where ep.UserId == UserId()
                 orderby ht.TimeStamp descending
@@ -66,7 +66,7 @@ namespace Data.Repositories
         {
             var query =
                 from ep in _context.EndPoint
-                join ht in _context.HttpResult
+                join ht in _context.ResultData
                 on ep.Id equals ht.EndPointId
                 where ep.UserId == UserId()
                 orderby ht.TimeStamp descending
@@ -82,7 +82,7 @@ namespace Data.Repositories
         public EndPointStatisticsDTO GetEndPointStatistics(EndPoint endPoint)
         {
             var query = from ep in _context.EndPoint
-                        join ht in _context.HttpResult
+                        join ht in _context.ResultData
                         on ep.Id equals ht.EndPointId
                         where ep.Id == endPoint.Id
                         orderby ht.TimeStamp descending

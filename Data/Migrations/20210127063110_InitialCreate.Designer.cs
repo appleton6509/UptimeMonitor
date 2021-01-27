@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Data.Migrations
 {
     [DbContext(typeof(UptimeContext))]
-    [Migration("20210102134331_remove echo and add httpresult")]
-    partial class removeechoandaddhttpresult
+    [Migration("20210127063110_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -28,10 +28,15 @@ namespace Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("Ip")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<bool?>("NotifyOnFailure")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -46,7 +51,7 @@ namespace Data.Migrations
                     b.ToTable("EndPoint");
                 });
 
-            modelBuilder.Entity("Data.Models.HttpResult", b =>
+            modelBuilder.Entity("Data.Models.ResultData", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -71,7 +76,7 @@ namespace Data.Migrations
 
                     b.HasIndex("EndPointId");
 
-                    b.ToTable("Http");
+                    b.ToTable("ResultData");
                 });
 
             modelBuilder.Entity("Data.Models.WebUser", b =>
@@ -294,10 +299,10 @@ namespace Data.Migrations
                         .HasForeignKey("WebUserId");
                 });
 
-            modelBuilder.Entity("Data.Models.HttpResult", b =>
+            modelBuilder.Entity("Data.Models.ResultData", b =>
                 {
                     b.HasOne("Data.Models.EndPoint", null)
-                        .WithMany("Http")
+                        .WithMany("HttpResult")
                         .HasForeignKey("EndPointId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -356,7 +361,7 @@ namespace Data.Migrations
 
             modelBuilder.Entity("Data.Models.EndPoint", b =>
                 {
-                    b.Navigation("Http");
+                    b.Navigation("HttpResult");
                 });
 
             modelBuilder.Entity("Data.Models.WebUser", b =>

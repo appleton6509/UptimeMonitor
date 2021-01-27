@@ -8,9 +8,9 @@ using UptimeAPI.Controllers.QueryParams;
 
 namespace UptimeAPI.Controllers.Repositories
 {
-    public interface IHttpResultRepository : IRepository<HttpResult>
+    public interface IResultDataRepository : IRepository<ResultData>
     {
         List<EndPointDetailsDTO> GetAll(PaginationParam page, ResultFilterParam filter);
-        Task<List<HttpResultLatencyDTO>> GetByEndPointAsync(Guid id, TimeRangeParam range);
+        Task<List<ResultDataLatencyDTO>> GetByEndPointAsync(Guid id, TimeRangeParam range);
     }
 }

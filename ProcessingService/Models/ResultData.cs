@@ -4,10 +4,10 @@ using System.Text;
 
 namespace ProcessingService.Models
 {
-    public class HttpResult : Data.Models.HttpResult, IMap
+    public class ResultData : Data.Models.ResultData, IMap
     {
-        public HttpResult() { }
-        public HttpResult(ResponseResult result)
+        public ResultData() { }
+        public ResultData(ResponseResult result)
         {
              this.Map(result);
         }

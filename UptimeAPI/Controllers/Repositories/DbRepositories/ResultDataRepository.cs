@@ -15,9 +15,9 @@ using UptimeAPI.Controllers.QueryParams;
 
 namespace UptimeAPI.Controllers.Repositories
 {
-    public class HttpResultRepository : BaseRepository, IHttpResultRepository
+    public class ResultDataRepository : BaseRepository, IResultDataRepository
     {
-        public HttpResultRepository(UptimeContext context, IHttpContextAccessor httpcontext, IMapper mapper = null) : base(context, httpcontext, mapper)
+        public ResultDataRepository(UptimeContext context, IHttpContextAccessor httpcontext, IMapper mapper = null) : base(context, httpcontext, mapper)
         {
         }
 
@@ -25,7 +25,7 @@ namespace UptimeAPI.Controllers.Repositories
         {
             var query =
                 from ep in _context.EndPoint
-                join ht in _context.HttpResult
+                join ht in _context.ResultData
                 on ep.Id equals ht.EndPointId
                 where ep.UserId == UserId()
                 orderby ht.TimeStamp descending
@@ -43,15 +43,15 @@ namespace UptimeAPI.Controllers.Repositories
             if (page.MaxPageSize == 0 || page.RequestedPage == 0)
                 return query.ToList();
 
-            var filteredQuery = new HttpResultFilterRules(filter, query);
+            var filteredQuery = new ResultDataFilterRules(filter, query);
             var results = PagedList<EndPointDetailsDTO>.ToPagedList(filteredQuery, page);
             return results;
         }
-        public async Task<List<HttpResultLatencyDTO>> GetByEndPointAsync(Guid id, TimeRangeParam range)
+        public async Task<List<ResultDataLatencyDTO>> GetByEndPointAsync(Guid id, TimeRangeParam range)
         {
             EndPoint endPoint = _context.EndPoint.Find(id);
             var query = from ep in _context.EndPoint
-                        join ht in _context.HttpResult
+                        join ht in _context.ResultData
                         on ep.Id equals ht.EndPointId
                         where
                         ep.UserId == UserId() &&
@@ -59,27 +59,27 @@ namespace UptimeAPI.Controllers.Repositories
                         ht.TimeStamp >= range.Start &&
                         ht.TimeStamp <= range.End
                         orderby ht.TimeStamp ascending
-                        select _mapper.Map<HttpResult, HttpResultLatencyDTO>(ht);
+                        select _mapper.Map<ResultData, ResultDataLatencyDTO>(ht);
 
             return await query.ToListAsync(); ;
         }
 
-        public List<HttpResult> GetAll()
+        public List<ResultData> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        public Task<int> PostAsync(HttpResult model)
+        public Task<int> PostAsync(ResultData model)
         {
             throw new NotImplementedException();
         }
 
-        public Task<int> PutAsync(Guid id, HttpResult model)
+        public Task<int> PutAsync(Guid id, ResultData model)
         {
             throw new NotImplementedException();
         }
 
-        public HttpResult Get(Guid id)
+        public ResultData Get(Guid id)
         {
             throw new NotImplementedException();
         }

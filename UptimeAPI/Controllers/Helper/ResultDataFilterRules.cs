@@ -1,4 +1,5 @@
 ﻿
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,12 +9,12 @@ using UptimeAPI.Controllers.QueryParams;
 
 namespace UptimeAPI.Controllers.Helper
 {
-    public class HttpResultFilterRules : IFilterRules
+    public class ResultDataFilterRules : IFilterRules
     {
         private ResultFilterParam _filter;
         private IQueryable<EndPointDetailsDTO> _query;
 
-        public HttpResultFilterRules(ResultFilterParam filter, IQueryable<EndPointDetailsDTO> query)
+        public ResultDataFilterRules(ResultFilterParam filter, IQueryable<EndPointDetailsDTO> query)
         {
             _filter = filter;
             _query = query;
@@ -27,18 +28,18 @@ namespace UptimeAPI.Controllers.Helper
             return this._query;
         }
 
-        private HttpResultFilterRules FilterReachable()
+        private ResultDataFilterRules FilterReachable()
         {
             if (_filter.Reachable.HasValue)
                 _query = _query.Where(x => x.IsReachable == _filter.Reachable.Value);
             return this;
         }
-        private HttpResultFilterRules FilterSortBy()
+        private ResultDataFilterRules FilterSortBy()
         {
             return this.SortByDescending().SortByAscending();
         }
 
-        private HttpResultFilterRules SortByDescending()
+        private ResultDataFilterRules SortByDescending()
         {
             if (_filter.OrderBy == OrderBy.Descending || _filter.OrderBy == OrderBy.None)
             {
@@ -66,7 +67,7 @@ namespace UptimeAPI.Controllers.Helper
             }
             return this;
         }
-        private HttpResultFilterRules SortByAscending()
+        private ResultDataFilterRules SortByAscending()
         {
             if (_filter.OrderBy == OrderBy.Ascending)
             {

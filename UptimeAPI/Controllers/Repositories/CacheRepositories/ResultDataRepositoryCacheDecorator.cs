@@ -15,15 +15,15 @@ using UptimeAPI.Controllers.QueryParams;
 namespace UptimeAPI.Controllers.Repositories.CacheRepositories
 {
     [Obsolete("This class is no longer in use as project required REAL TIME updates")]
-    public class HttpResultRepositoryCacheDecorator : BaseRepository, IHttpResultRepository
+    public class ResultDataRepositoryCacheDecorator : BaseRepository, IResultDataRepository
     {
         private readonly IMemoryCache _cache;
-        private readonly IHttpResultRepository _repo;
-        public HttpResultRepositoryCacheDecorator(
+        private readonly IResultDataRepository _repo;
+        public ResultDataRepositoryCacheDecorator(
             UptimeContext context,
             IHttpContextAccessor httpcontext,
             IMemoryCache cache,
-            HttpResultRepository repo,
+            ResultDataRepository repo,
             IMapper mapper = null) : base(context, httpcontext, mapper)
         {
             _cache = cache;
@@ -40,14 +40,14 @@ namespace UptimeAPI.Controllers.Repositories.CacheRepositories
             return _repo.Exists(id);
         }
 
-        public HttpResult Get(Guid id)
+        public ResultData Get(Guid id)
         {
             return _repo.Get(id);
         }
 
         public List<EndPointDetailsDTO> GetAll(PaginationParam page, ResultFilterParam filter)
         {
-            var key = $"{nameof(HttpResultRepositoryCacheDecorator)}{UserId()}{nameof(GetAll)}{page.RequestedPage}";
+            var key = $"{nameof(ResultDataRepositoryCacheDecorator)}{UserId()}{nameof(GetAll)}{page.RequestedPage}";
             bool hasCache = _cache.TryGetValue(key, out List<EndPointDetailsDTO> data);
             if (hasCache)
                 return data;
@@ -57,15 +57,15 @@ namespace UptimeAPI.Controllers.Repositories.CacheRepositories
             return data;
         }
 
-        public List<HttpResult> GetAll()
+        public List<ResultData> GetAll()
         {
             return _repo.GetAll();
         }
 
-        public async Task<List<HttpResultLatencyDTO>> GetByEndPointAsync(Guid id, TimeRangeParam range)
+        public async Task<List<ResultDataLatencyDTO>> GetByEndPointAsync(Guid id, TimeRangeParam range)
         {
-            var key = $"{nameof(HttpResultRepositoryCacheDecorator)}{UserId()}{nameof(GetByEndPointAsync)}{id}";
-            bool hasCache = _cache.TryGetValue(key, out List<HttpResultLatencyDTO> data);
+            var key = $"{nameof(ResultDataRepositoryCacheDecorator)}{UserId()}{nameof(GetByEndPointAsync)}{id}";
+            bool hasCache = _cache.TryGetValue(key, out List<ResultDataLatencyDTO> data);
             if (hasCache)
                 return data;
 
@@ -74,12 +74,12 @@ namespace UptimeAPI.Controllers.Repositories.CacheRepositories
             return data;
         }
 
-        public Task<int> PostAsync(HttpResult model)
+        public Task<int> PostAsync(ResultData model)
         {
             return _repo.PostAsync(model);
         }
 
-        public Task<int> PutAsync(Guid id, HttpResult model)
+        public Task<int> PutAsync(Guid id, ResultData model)
         {
             return _repo.PutAsync(id, model);
         }

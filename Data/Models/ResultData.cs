@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Text;
 
-namespace UptimeAPI.Controllers.DTOs
+namespace Data.Models
 {
-    public class HttpResultLatencyDTO
+    public class ResultData : BaseModel
     {
         public DateTime TimeStamp { get; set; }
         public bool IsReachable { get; set; }
         public int Latency { get; set; }
+        public string StatusMessage { get; set; }
         public Guid EndPointId { get; set; }
     }
 }

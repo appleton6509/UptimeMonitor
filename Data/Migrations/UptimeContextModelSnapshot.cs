@@ -49,7 +49,7 @@ namespace Data.Migrations
                     b.ToTable("EndPoint");
                 });
 
-            modelBuilder.Entity("Data.Models.HttpResult", b =>
+            modelBuilder.Entity("Data.Models.ResultData", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -74,7 +74,7 @@ namespace Data.Migrations
 
                     b.HasIndex("EndPointId");
 
-                    b.ToTable("HttpResult");
+                    b.ToTable("ResultData");
                 });
 
             modelBuilder.Entity("Data.Models.WebUser", b =>
@@ -297,7 +297,7 @@ namespace Data.Migrations
                         .HasForeignKey("WebUserId");
                 });
 
-            modelBuilder.Entity("Data.Models.HttpResult", b =>
+            modelBuilder.Entity("Data.Models.ResultData", b =>
                 {
                     b.HasOne("Data.Models.EndPoint", null)
                         .WithMany("HttpResult")

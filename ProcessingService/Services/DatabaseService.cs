@@ -12,7 +12,7 @@ namespace ProcessingService.Services
 {
     public interface IDatabaseService
     {
-        void Create(HttpResult result);
+        void Create(ResultData result);
         List<EndPoint> GetAll();
         EndPoint Get(Guid id);
         List<EndPoint> FindNewEndpoints();
@@ -26,13 +26,13 @@ namespace ProcessingService.Services
             _contextFactory = contextFactory;
         }
 
-        public void Create(HttpResult result)
+        public void Create(ResultData result)
         {
             if (Object.Equals(result, null))
                 return;
 
             using var context = _contextFactory.CreateDbContext();
-            context.HttpResult.Add(result);
+            context.ResultData.Add(result);
             context.SaveChanges();
         }
         public List<EndPoint> FindNewEndpoints()
@@ -40,7 +40,7 @@ namespace ProcessingService.Services
             using var context = _contextFactory.CreateDbContext();
             var newEndpoint =  context.EndPoint
                 .Select(x => x.Id)
-                .Except(context.HttpResult.Select(y => y.EndPointId))
+                .Except(context.ResultData.Select(y => y.EndPointId))
                 .ToList();
             List<EndPoint> endPoints = new List<EndPoint>();
             foreach(Guid id in newEndpoint)

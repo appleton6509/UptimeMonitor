@@ -19,7 +19,7 @@ namespace UptimeAPI.Services
           private readonly Dictionary<Type,string > _types = new Dictionary<Type,string >
             {
                 {typeof(EndPoint),nameof(EndPoint)},
-                {typeof(HttpResult),nameof(HttpResult) }
+                {typeof(ResultData),nameof(ResultData) }
             };
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, 
             OperationAuthorizationRequirement requirement, IBaseModel resource)

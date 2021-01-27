@@ -17,9 +17,8 @@ using Microsoft.AspNetCore.Authorization;
 using UptimeAPI.Services;
 using UptimeAPI.Controllers.Mapping;
 using Data.Repositories;
-using Data.Models;
 using UptimeAPI.Controllers.Repositories;
-using UptimeAPI.Controllers.Repositories.CacheRepositories;
+
 
 namespace UptimeAPI
 {
@@ -48,7 +47,7 @@ namespace UptimeAPI
                 services.AddDbContext<UptimeContext>(options =>
                         options.UseSqlServer(Configuration.GetConnectionString("Production"), s => s.MigrationsAssembly("Data")));
             services.AddScoped<IEndPointRepository, EndPointRepository>();
-            services.AddScoped<IHttpResultRepository, HttpResultRepository>();
+            services.AddScoped<IResultDataRepository, ResultDataRepository>();
             services.AddScoped<IWebUserRepository, WebUserRepository>();
 
             //mapper

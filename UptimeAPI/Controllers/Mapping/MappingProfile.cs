@@ -17,8 +17,8 @@ namespace UptimeAPI.Controllers.Mapping
                 .ForMember(u => u.Id, opt => opt.Ignore());
             CreateMap<WebEndPointDTO, EndPoint>()
                 .ForMember(u => u.Id, opt => opt.Ignore());
-            CreateMap<HttpResult, HttpResultLatencyDTO>();
-            CreateMap<HttpResultLatencyDTO,HttpResult>();
+            CreateMap<ResultData, ResultDataLatencyDTO>();
+            CreateMap<ResultDataLatencyDTO,ResultData>();
         }
     }
 }

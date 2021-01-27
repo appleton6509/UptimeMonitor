@@ -32,10 +32,8 @@ namespace ProcessingService
             _http = processor;
             _db = db;
         }
-
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-
             while (!stoppingToken.IsCancellationRequested)
             {
                 _logger.LogTrace("Worker running at: {time}", DateTimeOffset.Now);
@@ -53,7 +51,6 @@ namespace ProcessingService
                 handler.Stop();
                 addNewEndPoints.Wait();
                 processResults.Wait();
-
             }
         }
 
@@ -69,7 +66,7 @@ namespace ProcessingService
                     {
                         try
                         {
-                            _db.Create(new HttpResult(x.Response));
+                            _db.Create(new ResultData(x.Response));
                         }
                         catch (Exception e)
                         {

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Data.Migrations
 {
-    public partial class initialcreate : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -171,8 +171,9 @@ namespace Data.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Ip = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
+                    Ip = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: true),
+                    NotifyOnFailure = table.Column<bool>(type: "bit", nullable: true),
                     WebUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
@@ -187,18 +188,21 @@ namespace Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Echo",
+                name: "ResultData",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     TimeStamp = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsReachable = table.Column<bool>(type: "bit", nullable: false),
+                    Latency = table.Column<int>(type: "int", nullable: false),
+                    StatusMessage = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     EndPointId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Echo", x => x.Id);
+                    table.PrimaryKey("PK_ResultData", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Echo_EndPoint_EndPointId",
+                        name: "FK_ResultData_EndPoint_EndPointId",
                         column: x => x.EndPointId,
                         principalTable: "EndPoint",
                         principalColumn: "Id",
@@ -245,14 +249,14 @@ namespace Data.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Echo_EndPointId",
-                table: "Echo",
-                column: "EndPointId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_EndPoint_WebUserId",
                 table: "EndPoint",
                 column: "WebUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ResultData_EndPointId",
+                table: "ResultData",
+                column: "EndPointId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -273,7 +277,7 @@ namespace Data.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Echo");
+                name: "ResultData");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

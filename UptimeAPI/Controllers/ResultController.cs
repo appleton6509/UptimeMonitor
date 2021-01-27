@@ -17,13 +17,13 @@ namespace UptimeAPI.Controllers
     public class ResultController : ControllerBase
     {
         #region Properties / Constructor
-        private readonly IHttpResultRepository _httpResultRepository;
+        private readonly IResultDataRepository _httpResultRepository;
         private readonly IEndPointRepository _endPointRepository;
         private readonly IAuthorizationService _authorizationService;
 
 
         public ResultController(
-            IHttpResultRepository httpResultRepository
+            IResultDataRepository httpResultRepository
             , IEndPointRepository endPointRepository
             , IAuthorizationService authorizationService)
         {
@@ -47,7 +47,7 @@ namespace UptimeAPI.Controllers
 
         }
         [HttpGet("LogsByTime/{id}")]
-        public async Task<ActionResult<List<HttpResultLatencyDTO>>> GetResultByEndPointByTime(Guid id, [FromQuery] TimeRangeParam range)
+        public async Task<ActionResult<List<ResultDataLatencyDTO>>> GetResultByEndPointByTime(Guid id, [FromQuery] TimeRangeParam range)
         {
             var endPoint = _endPointRepository.Get(id);
             AuthorizationResult auth = await _authorizationService.AuthorizeAsync(User, endPoint, Operations.Update);
