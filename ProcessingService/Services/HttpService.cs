@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace ProcessingService.Services
 {
+    public interface IHttpService
+    {   
+        public Task<ResponseResult> CheckConnection(Data.Models.EndPoint endpoint);
+    }
     public class HttpService : IHttpService
     {
         private readonly HttpClient _client;
