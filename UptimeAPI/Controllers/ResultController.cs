@@ -1,20 +1,12 @@
-﻿using AutoMapper;
-using Data;
-using Data.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using UptimeAPI.Controllers.DTOs;
 using UptimeAPI.Controllers.Helper;
 using UptimeAPI.Controllers.QueryParams;
 using UptimeAPI.Controllers.Repositories;
-using UptimeAPI.Messaging;
 using UptimeAPI.Services;
 
 namespace UptimeAPI.Controllers

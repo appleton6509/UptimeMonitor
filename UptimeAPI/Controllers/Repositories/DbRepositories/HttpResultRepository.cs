@@ -3,17 +3,13 @@ using AutoMapper;
 using Data;
 using Data.Models;
 using Data.Repositories;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UptimeAPI.Controllers.DTOs;
-using UptimeAPI.Controllers.Extensions;
 using UptimeAPI.Controllers.Helper;
 using UptimeAPI.Controllers.QueryParams;
 
