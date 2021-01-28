@@ -1,11 +1,15 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Data.Models
 {
-   public enum Protocol
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum Protocol
     {
+        None,
         Http,
         Https,
         Ftp
@@ -18,8 +22,8 @@ namespace Data.Models
         public string Description { get; set; }
 
         [Display(Name = "Site")]
-        [RegularExpression(@"?[a-z0-9]+([-.]{1}[a-z0-9]+)*.[a-z]{2,5}(:[0-9]{1,5})?(/.*)?$",
-    ErrorMessage = "{0} must be a valid web address")]
+    //    [RegularExpression(@"?[a-z0-9]+([-.]{1}[a-z0-9]+)*.[a-z]{2,5}(:[0-9]{1,5})?(/.*)?$",
+    //ErrorMessage = "{0} must be a valid web address")]
         [StringLength(60, ErrorMessage = "{0} must be a minimum of {2} characters", MinimumLength = 5)]
         public string Ip { get; set; }
 

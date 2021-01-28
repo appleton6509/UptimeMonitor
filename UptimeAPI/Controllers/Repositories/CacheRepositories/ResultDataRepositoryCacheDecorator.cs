@@ -45,10 +45,10 @@ namespace UptimeAPI.Controllers.Repositories.CacheRepositories
             return _repo.Get(id);
         }
 
-        public List<EndPointDetailsDTO> GetAll(PaginationParam page, ResultFilterParam filter)
+        public List<ResultDataDetailsDTO> GetAll(PaginationParam page, ResultFilterParam filter)
         {
             var key = $"{nameof(ResultDataRepositoryCacheDecorator)}{UserId()}{nameof(GetAll)}{page.RequestedPage}";
-            bool hasCache = _cache.TryGetValue(key, out List<EndPointDetailsDTO> data);
+            bool hasCache = _cache.TryGetValue(key, out List<ResultDataDetailsDTO> data);
             if (hasCache)
                 return data;
             

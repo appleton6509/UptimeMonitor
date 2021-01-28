@@ -8,6 +8,7 @@ namespace ProcessingService.Services
     public class TaskResult
     {
         public ResponseResult Response { get; set; }
-        public bool EmailOnCompletion { get; set; }
+        public bool? NotifyOnFailure { get; set; }
+        public string Email { get; set; }
     }
 }

@@ -35,11 +35,11 @@ namespace UptimeAPI.Controllers
 
         #region Custom GET
         [HttpGet("Logs")]
-        public ActionResult<List<EndPointDetailsDTO>> GetAllResults([FromQuery] PaginationParam page, [FromQuery] ResultFilterParam filter)
+        public ActionResult<List<ResultDataDetailsDTO>> GetAllResults([FromQuery] PaginationParam page, [FromQuery] ResultFilterParam filter)
         {
             if (page.RequestedPage > 0 & page.MaxPageSize > 0)
             {
-                PagedList<EndPointDetailsDTO> pagedList = (PagedList<EndPointDetailsDTO>)_httpResultRepository.GetAll(page, filter);
+                PagedList<ResultDataDetailsDTO> pagedList = (PagedList<ResultDataDetailsDTO>)_httpResultRepository.GetAll(page, filter);
                 pagedList.AddPaginationToResponse(Response);
                 return pagedList;
             }

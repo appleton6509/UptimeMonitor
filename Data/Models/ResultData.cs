@@ -10,6 +10,7 @@ namespace Data.Models
         public bool IsReachable { get; set; }
         public int Latency { get; set; }
         public string StatusMessage { get; set; }
+        public Protocol Protocol { get; set; }
         public Guid EndPointId { get; set; }
     }
 }

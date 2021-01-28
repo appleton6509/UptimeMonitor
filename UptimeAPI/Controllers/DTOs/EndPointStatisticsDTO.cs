@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Data.Models;
+using System;
 
 namespace UptimeAPI.Controllers.DTOs
 {
@@ -14,6 +12,7 @@ namespace UptimeAPI.Controllers.DTOs
         public string Ip { get; set; }
         public string Description { get; set; }
         public bool IsReachable { get; set; }
+        public Protocol Protocol { get; set; }
 
     }
 }

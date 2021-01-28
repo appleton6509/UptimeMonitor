@@ -36,10 +36,12 @@ namespace Data.Repositories
 
         public Task<int> PutAsync(Guid id, EndPoint model)
         {
-            EndPoint ep = _context.EndPoint.Find(id);
-            ep.Description = model.Description;
-            ep.Ip = model.Ip;
-            _context.Entry(ep).State = EntityState.Modified;
+            var ep = _context.EndPoint.Find(id);
+            if (ep is null || id != model.Id)
+            {
+                throw new BadHttpRequestException("Site id not found");
+            }
+            _context.Entry(ep).CurrentValues.SetValues(model);
             return _context.SaveChangesAsync();
         }
         #endregion
@@ -100,7 +102,8 @@ namespace Data.Repositories
                         Ip = endPoint.Ip,
                         IsReachable = false,
                         Description = endPoint.Description,
-                        Id = endPoint.Id
+                        Id = endPoint.Id,
+                        Protocol = endPoint.Protocol
                     };
                 }
             }
@@ -122,7 +125,8 @@ namespace Data.Repositories
                 Ip = endPoint.Ip,
                 IsReachable = isOnline ?? false,
                 Description = endPoint.Description,
-                Id = endPoint.Id
+                Id = endPoint.Id,
+                Protocol = endPoint.Protocol
             };
             return data;
         }

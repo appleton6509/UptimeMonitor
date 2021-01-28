@@ -13,9 +13,9 @@ namespace ProcessingService.Services
     public interface IDatabaseService
     {
         void Create(ResultData result);
-        List<EndPoint> GetAll();
-        EndPoint Get(Guid id);
-        List<EndPoint> FindNewEndpoints();
+        List<EndPointExtended> GetAll();
+        EndPointExtended Get(Guid id);
+        List<EndPointExtended> FindNewEndpoints();
     }
     public class DatabaseService : IDatabaseService
     {
@@ -35,29 +35,58 @@ namespace ProcessingService.Services
             context.ResultData.Add(result);
             context.SaveChanges();
         }
-        public List<EndPoint> FindNewEndpoints()
+        public List<EndPointExtended> FindNewEndpoints()
         {
             using var context = _contextFactory.CreateDbContext();
             var newEndpoint =  context.EndPoint
                 .Select(x => x.Id)
                 .Except(context.ResultData.Select(y => y.EndPointId))
                 .ToList();
-            List<EndPoint> endPoints = new List<EndPoint>();
+            List<EndPointExtended> endPoints = new List<EndPointExtended>();
             foreach(Guid id in newEndpoint)
                 endPoints.Add(Get(id));
 
             return endPoints;
 
         }
-        public List<EndPoint> GetAll()
+        public List<EndPointExtended> GetAll()
         {
             using var context = _contextFactory.CreateDbContext();
-            return context.EndPoint.ToList();
+            var endpoint = from ep in context.EndPoint
+                      join ht in context.WebUser
+                      on ep.UserId equals ht.Id
+                      select new EndPointExtended
+                      {
+                          Id = ep.Id,
+                          Description = ep.Description,
+                          Ip = ep.Ip,
+                          NotifyOnFailure = ep.NotifyOnFailure,
+                          Protocol = ep.Protocol,
+                          UserId = ep.UserId,
+                          Email = ht.UserName
+                      };
+            return endpoint.ToList();
+
+
         }
-        public EndPoint Get(Guid id)
+        public EndPointExtended Get(Guid id)
         {
             using var context = _contextFactory.CreateDbContext();
-            return context.EndPoint.Find(id);
+            var endpoint = from ep in context.EndPoint
+                           join ht in context.WebUser
+                           on ep.UserId equals ht.Id
+                           where ep.Id == id
+                           select new EndPointExtended
+                           {
+                               Id = ep.Id,
+                               Description = ep.Description,
+                               Ip = ep.Ip,
+                               NotifyOnFailure = ep.NotifyOnFailure,
+                               Protocol = ep.Protocol,
+                               UserId = ep.UserId,
+                               Email = ht.UserName
+                           };
+            return endpoint.FirstOrDefault();
         }
     }
 }

@@ -12,9 +12,9 @@ namespace UptimeAPI.Controllers.Helper
     public class ResultDataFilterRules : IFilterRules
     {
         private ResultFilterParam _filter;
-        private IQueryable<EndPointDetailsDTO> _query;
+        private IQueryable<ResultDataDetailsDTO> _query;
 
-        public ResultDataFilterRules(ResultFilterParam filter, IQueryable<EndPointDetailsDTO> query)
+        public ResultDataFilterRules(ResultFilterParam filter, IQueryable<ResultDataDetailsDTO> query)
         {
             _filter = filter;
             _query = query;

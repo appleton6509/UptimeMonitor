@@ -7,16 +7,16 @@ namespace ProcessingService.Services.TaskManager
 {
     public class ProtocolFactory
     {
-        private IHttpService _http;
+        private readonly IHttpService _http;
         public ProtocolFactory(IHttpService http)
         {
             _http = http;
         }
-        public IProtocol GetTask(EndPoint ep)
+        public IProtocol GetTask(EndPointExtended ep)
         {
             return new HttpProtocol(_http, ep);
         }
-        public List<IProtocol> GetTasks(List<EndPoint> eps)
+        public List<IProtocol> GetTasks(List<EndPointExtended> eps)
         {
             List<IProtocol> tasks = new List<IProtocol>();
             foreach (var ep in eps)

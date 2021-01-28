@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Data.Models;
+using System;
 
 namespace UptimeAPI.Controllers.DTOs
 {
        
-    public class EndPointDetailsDTO
+    public class ResultDataDetailsDTO
     {
         public string Ip { get; set; }
         public bool IsReachable { get; set; }
@@ -14,5 +13,6 @@ namespace UptimeAPI.Controllers.DTOs
         public int Latency { get; set; }
         public string Status { get; set; }
         public DateTime TimeStamp { get; set; }
+        public Protocol Protocol { get; set; }
     }
 }

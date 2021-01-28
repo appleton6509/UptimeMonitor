@@ -21,7 +21,7 @@ namespace UptimeAPI.Controllers.Repositories
         {
         }
 
-        public List<EndPointDetailsDTO> GetAll(PaginationParam page, ResultFilterParam filter)
+        public List<ResultDataDetailsDTO> GetAll(PaginationParam page, ResultFilterParam filter)
         {
             var query =
                 from ep in _context.EndPoint
@@ -29,7 +29,7 @@ namespace UptimeAPI.Controllers.Repositories
                 on ep.Id equals ht.EndPointId
                 where ep.UserId == UserId()
                 orderby ht.TimeStamp descending
-                select new EndPointDetailsDTO()
+                select new ResultDataDetailsDTO()
                 {
                     Ip = ep.Ip,
                     IsReachable = ht.IsReachable,
@@ -37,14 +37,15 @@ namespace UptimeAPI.Controllers.Repositories
                     Id = ep.Id,
                     Latency = ht.Latency,
                     Status = ht.StatusMessage,
-                    TimeStamp = ht.TimeStamp
+                    TimeStamp = ht.TimeStamp,
+                    Protocol = ht.Protocol
                 };
 
             if (page.MaxPageSize == 0 || page.RequestedPage == 0)
                 return query.ToList();
 
             var filteredQuery = new ResultDataFilterRules(filter, query);
-            var results = PagedList<EndPointDetailsDTO>.ToPagedList(filteredQuery, page);
+            var results = PagedList<ResultDataDetailsDTO>.ToPagedList(filteredQuery, page);
             return results;
         }
         public async Task<List<ResultDataLatencyDTO>> GetByEndPointAsync(Guid id, TimeRangeParam range)

@@ -132,7 +132,7 @@ namespace UptimeAPI.Controllers
                 HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, decodedUrl);
                 HttpResponseMessage res = client.Send(message);
                 return Ok(res.IsSuccessStatusCode);
-            } catch (Exception e)
+            } catch (Exception)
             {
                 return Ok(false);
             }

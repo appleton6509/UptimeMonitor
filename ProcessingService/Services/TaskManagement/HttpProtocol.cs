@@ -6,9 +6,9 @@ namespace ProcessingService.Services
     public class HttpProtocol : IProtocol
     {
         private readonly IHttpService _proc;
-        private readonly EndPoint _ep;
+        private readonly EndPointExtended _ep;
 
-        public HttpProtocol(IHttpService proc, EndPoint ep)
+        public HttpProtocol(IHttpService proc, EndPointExtended ep)
         {
             _proc = proc;
             _ep = ep;
@@ -20,7 +20,8 @@ namespace ProcessingService.Services
             TaskResult task = new TaskResult()
             {
                 Response = res,
-                EmailOnCompletion = false
+                NotifyOnFailure = _ep.NotifyOnFailure,
+                Email = _ep.Email
             };
 
             return task;

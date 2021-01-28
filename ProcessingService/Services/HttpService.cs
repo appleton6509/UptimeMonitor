@@ -10,7 +10,7 @@ namespace ProcessingService.Services
 {
     public interface IHttpService
     {   
-        public Task<ResponseResult> CheckConnection(Data.Models.EndPoint endpoint);
+        public Task<ResponseResult> CheckConnection(EndPointExtended endpoint);
     }
     public class HttpService : IHttpService
     {
@@ -27,7 +27,7 @@ namespace ProcessingService.Services
             return true;
         }
 
-        public async Task<ResponseResult> CheckConnection(Data.Models.EndPoint ep)
+        public async Task<ResponseResult> CheckConnection(EndPointExtended ep)
         {
             if (!IsHostNameValid(ep.Ip))
             {
@@ -38,14 +38,17 @@ namespace ProcessingService.Services
                     IsReachable = false,
                     Latency = 0,
                     StatusMessage = "Invalid hostname: " + ep.Ip,
+                    Protocol = Data.Models.Protocol.None
                 };
             }
             string host = ep.Ip;
             ResponseResult result = new ResponseResult
             {
                 IsReachable = true,
-                Id = ep.Id
+                Id = ep.Id,
+                Protocol = Data.Models.Protocol.Http
             };
+
             try
             {
                 HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, host);
@@ -70,7 +73,6 @@ namespace ProcessingService.Services
                 result.StatusMessage = "Internal error: " + e.Message;
                 _logger.LogCritical($"Error occured in request to {host} with message: " + e.Message);
             }
-
             return result;
         }
     }

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ProcessingService.Models
 {
-    public class ResultData : Data.Models.ResultData, IMap
+    internal class ResultData : Data.Models.ResultData, IMap
     {
         public ResultData() { }
         public ResultData(ResponseResult result)
@@ -21,6 +21,8 @@ namespace ProcessingService.Models
             IsReachable = result.IsReachable;
             StatusMessage = result.StatusMessage;
             TimeStamp = DateTime.UtcNow;
+            Protocol = result.Protocol;
+             
         }
     }
 }
