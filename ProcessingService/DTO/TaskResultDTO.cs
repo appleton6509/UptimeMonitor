@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ProcessingService.Services
+namespace ProcessingService.DTO
 {
-    public class TaskResult
+    public class TaskResultDTO
     {
         public ResponseResult Response { get; set; }
         public bool? NotifyOnFailure { get; set; }

@@ -1,7 +1,6 @@
 ﻿using Data;
-using Data.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using ProcessingService.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +11,7 @@ namespace ProcessingService.Services
 {
     public interface IDatabaseService
     {
-        void Create(ResultData result);
+         void Create(ResultData result);
         List<EndPointExtended> GetAll();
         EndPointExtended Get(Guid id);
         List<EndPointExtended> FindNewEndpoints();
@@ -20,7 +19,6 @@ namespace ProcessingService.Services
     public class DatabaseService : IDatabaseService
     {
         private readonly IDbContextFactory<UptimeContext> _contextFactory;
-
         public DatabaseService(IDbContextFactory<UptimeContext> contextFactory)
         {
             _contextFactory = contextFactory;
@@ -66,8 +64,6 @@ namespace ProcessingService.Services
                           Email = ht.UserName
                       };
             return endpoint.ToList();
-
-
         }
         public EndPointExtended Get(Guid id)
         {

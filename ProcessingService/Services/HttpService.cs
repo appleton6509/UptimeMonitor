@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Data.Models;
+using Microsoft.Extensions.Logging;
+using ProcessingService.BusinessLogic;
 using ProcessingService.Models;
 using System;
 using System.Diagnostics;
@@ -8,29 +10,21 @@ using System.Threading.Tasks;
 
 namespace ProcessingService.Services
 {
-    public interface IHttpService
-    {   
-        public Task<ResponseResult> CheckConnection(EndPointExtended endpoint);
-    }
+    public interface IHttpService : IProtocolService { }
+
     public class HttpService : IHttpService
     {
-        private readonly HttpClient _client;
-        private readonly ILogger<HttpService> _logger;
+        private readonly HttpClient http;
+        private readonly ILogger log;
         public HttpService(HttpClient client, ILogger<HttpService> logger)
         {
-            _client = client;
-            _logger = logger;
-        }
-        private bool IsHostNameValid(string hostname)
-        {
-            if (Object.Equals(hostname, null)) return false;
-            return true;
+            http = client;
+            log = logger;
         }
 
-        public async Task<ResponseResult> CheckConnection(EndPointExtended ep)
+        public ResponseResult CheckConnection(EndPointExtended ep)
         {
-            if (!IsHostNameValid(ep.Ip))
-            {
+            if (ep.Ip is null)
                 return new ResponseResult()
                 {
                     Id = ep.Id,
@@ -38,15 +32,15 @@ namespace ProcessingService.Services
                     IsReachable = false,
                     Latency = 0,
                     StatusMessage = "Invalid hostname: " + ep.Ip,
-                    Protocol = Data.Models.Protocol.None
+                    Protocol = Data.Models.Protocol.http
                 };
-            }
-            string host = ep.Ip;
+
+            string host = $"{ep.Protocol}://{ep.Ip}";
             ResponseResult result = new ResponseResult
             {
                 IsReachable = true,
                 Id = ep.Id,
-                Protocol = Data.Models.Protocol.Http
+                Protocol = ep.Protocol
             };
 
             try
@@ -54,7 +48,7 @@ namespace ProcessingService.Services
                 HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, host);
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
-                HttpResponseMessage res = await _client.SendAsync(message);
+                HttpResponseMessage res = http.SendAsync(message).Result;
                 watch.Stop();
                 if (!res.IsSuccessStatusCode)
                     result.IsReachable = false;
@@ -65,13 +59,13 @@ namespace ProcessingService.Services
             {
                 result.IsReachable = false;
                 result.StatusMessage = e.Message;
-                _logger.LogInformation($"Unable to reach {host} with message: " + e.Message);
+                log.LogInformation($"Unable to reach {host} with message: " + e.Message);
             }
             catch (Exception e)
             {
                 result.IsReachable = false;
                 result.StatusMessage = "Internal error: " + e.Message;
-                _logger.LogCritical($"Error occured in request to {host} with message: " + e.Message);
+                log.LogError($"Error occured in request to {host} with message: " + e.Message);
             }
             return result;
         }

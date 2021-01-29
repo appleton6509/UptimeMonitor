@@ -1,9 +1,10 @@
 
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ProcessingService.BusinessLogic.Protocols;
+using ProcessingService.DTO;
 using ProcessingService.Models;
 using ProcessingService.Services;
-using ProcessingService.Services.TaskManager;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,9 +15,10 @@ namespace ProcessingService
 {
     public class Worker : BackgroundService
     {
-        private readonly ILogger _logger;
-        private readonly IDatabaseService _db;
-        private readonly IHttpService _http;
+        private readonly ILogger log;
+        private readonly IDatabaseService db;
+        private readonly ProtocolFactory factory;
+        private readonly ProtocolHandler handler;
         /// <summary>
         /// interval (in milliseconds) between running of app
         /// </summary>
@@ -25,74 +27,96 @@ namespace ProcessingService
         /// Number of service workers that will run simultaneously
         /// </summary>
         private int NumberOfWorkers { get; set; } = 5000;
+        private static List<EndPointExtended> newEndPointsAdded;
 
-        public Worker(ILogger<Worker> logger, IHttpService processor, IDatabaseService db)
+        public Worker(ILogger<Worker> logger, ProtocolFactory factory, ProtocolHandler handler, IDatabaseService db)
         {
-            _logger = logger;
-            _http = processor;
-            _db = db;
+            log = logger;
+            this.db = db;
+            this.factory = factory;
+            this.handler = handler;
+            newEndPointsAdded = new List<EndPointExtended>();
+            using System.Timers.Timer timer = new System.Timers.Timer(30000)
+            {
+                AutoReset = true
+            };
+            timer.Elapsed += Timer_Elapsed;
+
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            Task find = new Task(() => { FindNewEndPoints(handler); }, TaskCreationOptions.PreferFairness);
+            Task process = new Task(() => { ProcessResults(handler); }, TaskCreationOptions.PreferFairness);
+            log.LogTrace("Worker running at: {time}", DateTimeOffset.Now);
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogTrace("Worker running at: {time}", DateTimeOffset.Now);
-
-                var data = _db.GetAll();
-                ProtocolHandler handler = new ProtocolHandler(_logger);
-                ProtocolFactory factory = new ProtocolFactory(_http);
-                List<IProtocol> tasks = factory.GetTasks(data);
+                List<EndPointExtended> data = db.GetAll();
+                List<IProtocol> tasks = factory.GetProtocols(data);
                 handler.AddRange(tasks);
-                handler.Start();
-                Task delay = Task.Run(async () => await Task.Delay(_intervalBetweenPing));
-                Task addNewEndPoints = Task.Run(() => FindNewEndPoints(handler, factory, delay));
-                Task processResults = Task.Run(() => ProcessResults(handler, delay));
-                delay.Wait();
-                handler.Stop();
-                addNewEndPoints.Wait();
-                processResults.Wait();
+                if (!handler.IsRunning)
+                {
+                    handler.Start();
+                    find.Start();
+                    process.Start();
+                }
+
+                await Task.Delay(_intervalBetweenPing);
             }
         }
 
-        private async Task ProcessResults(ProtocolHandler handler, Task delay)
+        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            while (!delay.IsCompleted)
+            newEndPointsAdded.Clear();
+        }
+
+        private async Task ProcessResults(ProtocolHandler handler)
+        {
+            while (handler.IsRunning)
             {
-                while (handler.ResultCount > 0)
+                Queue<TaskResultDTO> results = handler.GetAndClearResults();
+                if (results.Count > 0)
                 {
-                    _logger.LogInformation($"adding {handler.ResultCount} records to db");
-                    List<TaskResult> results = handler.GetAndClearResults();
-                    results.ForEach(x =>
+                    log.LogInformation($"{DateTime.UtcNow} - adding {results.Count} records to db");
+                    while(results.Count > 0)
                     {
                         try
                         {
-                            _db.Create(new ResultData(x.Response));
+                            db.Create(new ResultData(results.Dequeue().Response));
                         }
                         catch (Exception e)
                         {
-                            _logger.LogError("Error adding to DB: " + e.Message);
+                            log.LogError("Error adding to DB: " + e.Message);
                         }
-                    });
-                    await Task.Delay(1000);
+                    }
                 }
+                await Task.Delay(1000);
             }
         }
 
-        private async Task FindNewEndPoints(ProtocolHandler handler, ProtocolFactory factory, Task delay)
+        private async Task FindNewEndPoints(ProtocolHandler handler)
         {
-            while (!delay.IsCompleted)
+            while (handler.IsRunning)
             {
                 try
                 {
-                    List<IProtocol> newTasks = factory.GetTasks(_db.FindNewEndpoints());
-                    if (newTasks.Count > 0)
-                        handler.AddRange(newTasks);
+                    var endpoints = db.FindNewEndpoints();
+                    List<EndPointExtended> toBeAdded = new List<EndPointExtended>();
+                    foreach (var ep in endpoints)
+                    {
+                        if (!newEndPointsAdded.Exists(x => x.Id.Equals(ep.Id)))
+                        {
+                            newEndPointsAdded.Add(ep);
+                            toBeAdded.Add(ep);
+                        }
+                    }
+                    List<IProtocol> newTasks = factory.GetProtocols(toBeAdded);
+                    handler.AddRange(newTasks);
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError("Error finding new endpoings in DB: " + e.Message);
+                    log.LogError("Error finding new endpoings in DB: " + e.Message);
                 }
-                await Task.Delay(2000);
+                await Task.Delay(4000);
             }
         }
     }

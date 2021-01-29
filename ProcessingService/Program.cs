@@ -3,6 +3,7 @@ using Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ProcessingService.BusinessLogic.Protocols;
 using ProcessingService.Services;
 using System;
 using System.Net.Http;
@@ -30,17 +31,19 @@ namespace ProcessingService
                         else
                             options.UseSqlServer(hostContext.Configuration.GetSection("ConnectionStrings")["Production"]);
                     });
-                    services.AddTransient<IDatabaseService, DatabaseService>();
-                    services.AddTransient<IHttpService, HttpService>();
-                    services.AddSingleton<HttpClient>(s =>
+                    services.AddSingleton(s =>
                     {
                         var handler = new HttpClientHandler()
                         {
                             ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; }
                         };
-                        return new HttpClient(handler, true)
-                            { Timeout = new TimeSpan(0, 0, 10) };
+                       return new HttpClient(handler, true) { Timeout = new TimeSpan(0, 0, 10) };
                     });
+                    services.AddTransient<IDatabaseService, DatabaseService>();
+                    services.AddSingleton<ProtocolFactory>();
+                    services.AddSingleton<ProtocolHandler>();
+                    services.AddTransient<IFtpService, FtpService>();
+                    services.AddTransient<IHttpService, HttpService>();
                 });
     }
 }

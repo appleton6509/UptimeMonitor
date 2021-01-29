@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ProcessingService.Models
 {
-    internal class ResultData : Data.Models.ResultData, IMap
+    public class ResultData : Data.Models.ResultData, IMap
     {
         public ResultData() { }
         public ResultData(ResponseResult result)

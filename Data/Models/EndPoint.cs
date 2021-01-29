@@ -9,10 +9,11 @@ namespace Data.Models
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum Protocol
     {
-        None,
-        Http,
-        Https,
-        Ftp
+        http,
+        https,
+        ftp,
+        ftps,
+        sftp
     }
     public class EndPoint : BaseModel
     {

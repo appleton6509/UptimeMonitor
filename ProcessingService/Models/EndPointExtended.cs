@@ -1,6 +1,6 @@
 ﻿using Data.Models;
 
-namespace ProcessingService.Services
+namespace ProcessingService.Models
 {
     public class EndPointExtended : EndPoint
     {
