@@ -1,11 +1,30 @@
 ﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml"
+      xmlns:o="urn:schemas-microsoft-com:office:office">
 
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="utf-8" />
-    <title></title>
-</head>
-<body>
-    {email}
-</body>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Site Failure</title> <!-- The title tag shows in email notifications, like Android 4.4. -->
+    </head>
+    <body>
+        <center>
+            <a style="font-size: 7vw; color: red; font-weight: bold;">Down</a>
+        </center>
+        <center>
+            <hr />
+            <p style="font-size: 5vw;">{ip}</p>
+            <hr />
+        </center>
+        <br />
+        <br />
+        An outage was reported for the following url:
+        <p>
+            <pre>
+Site:          {ip}
+Protocol:      {protocol}
+Description:   {description}
+</pre>
+        </p>
+    </body>
 </html>

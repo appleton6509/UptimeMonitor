@@ -16,6 +16,12 @@ namespace ProcessingService.Services.Email
         public bool UseSSL { get; set; }
         public string UserName { get; set; }
         public string Password { get; set; }
+
+        /// <summary>
+        /// retrieve smtp settings from appsettings.json
+        /// </summary>
+        /// <param name="sectionName">name of section</param>
+        /// <returns></returns>
         public static EmailSettings GetFromAppSettings(string sectionName)
         {
             var config = new ConfigurationBuilder()

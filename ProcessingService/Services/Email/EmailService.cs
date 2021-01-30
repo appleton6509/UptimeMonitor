@@ -10,6 +10,7 @@ using System.Configuration;
 using Microsoft.Extensions.Configuration;
 using Data.Models;
 using Microsoft.Extensions.Logging;
+using MimeKit.Utils;
 
 namespace ProcessingService.Services.Email
 {
@@ -21,10 +22,16 @@ namespace ProcessingService.Services.Email
         EmailOnFailure
     }
 
+    /// <summary>
+    /// a service for sending out emails
+    /// </summary>
     public class EmailService : IEmailService
     {
         private readonly ILogger<EmailService> log;
-        private Dictionary<EmailTemplates, string> map = new Dictionary<EmailTemplates, string>()
+        /// <summary>
+        /// map to email template file location
+        /// </summary>
+        private readonly Dictionary<EmailTemplates, string> map = new Dictionary<EmailTemplates, string>()
         {
             { EmailTemplates.EmailOnFailure, @"Services/Email/EmailOnFailureTemplate.html" }
         };
@@ -32,27 +39,28 @@ namespace ProcessingService.Services.Email
         public EmailService(ILogger<EmailService> log) {
             this.log = log;
         }
-
+        /// <summary>
+        /// sends failure notice emails for endpoints.
+        /// </summary>
+        /// <param name="email">email of recipient</param>
+        /// <param name="ep">endpoint data</param>
         public void SendFailureEmail(string email, EndPointExtended ep)
         {
             using StreamReader reader = new StreamReader(map[EmailTemplates.EmailOnFailure]);
-            string rawHtml = reader.ReadToEnd();
-            string rawBody = rawHtml
-                .Replace("{email}", $"{email}")
-                .Replace("{ip}", $"{ep.Ip}")
-                .Replace("{description}", $"{ep.Description}")
-                .Replace("{protocol}", $"{ep.Protocol}");
-
-            var builder = new BodyBuilder
-            {
-                HtmlBody = rawBody
-            };
+            string html = reader.ReadToEnd();
+            var builder = new BodyBuilder();
+            string body = html
+                .Replace("{ip}", ep.Ip)
+                .Replace("{description}", ep.Description)
+                .Replace("{protocol}", ep.Protocol.ToString());
+            builder.HtmlBody = body;
+            
+            var msg = new MimeMessage();
             EmailSettings em = EmailSettings.GetFromAppSettings("SmtpEmail");
             em.SubjectEmail = email;
-
-            var msg = new MimeMessage();
+            em.Subject = "Site Failure";
             msg.From.Add(new MailboxAddress(email, email));
-            msg.To.Add(new MailboxAddress(em.SubjectName,em.SubjectEmail));
+            msg.To.Add(new MailboxAddress(em.SubjectEmail,em.SubjectEmail));
             msg.Subject = em.Subject;
             msg.Body = builder.ToMessageBody();
 
