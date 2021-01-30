@@ -18,7 +18,7 @@ namespace ProcessingService.Services
     }
     public class DatabaseService : IDatabaseService
     {
-        private readonly IDbContextFactory<UptimeContext> _contextFactory;
+        internal readonly IDbContextFactory<UptimeContext> _contextFactory;
         public DatabaseService(IDbContextFactory<UptimeContext> contextFactory)
         {
             _contextFactory = contextFactory;

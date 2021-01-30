@@ -14,7 +14,7 @@ namespace ProcessingService.BusinessLogic.Protocols
         private Queue<Task<TaskResultDTO>> queued;
         private List<Task<TaskResultDTO>> running;
         private Queue<TaskResultDTO> finished;
-        private ILogger<ProtocolHandler> log;
+        private readonly ILogger<ProtocolHandler> log;
         private bool _isRunning;
         public bool IsRunning
         {
@@ -31,7 +31,7 @@ namespace ProcessingService.BusinessLogic.Protocols
             finished = new Queue<TaskResultDTO>();
             running = new List<Task<TaskResultDTO>>();
             queued = new Queue<Task<TaskResultDTO>>();
-            moveCompletedTasks = new Task(() => { this.MoveCompletedTasks(); }, TaskCreationOptions.LongRunning);
+            moveCompletedTasks = new Task( () => { this.MoveCompletedTasks(); }, TaskCreationOptions.LongRunning);
             beginTasks = new Task(() => { this.BeginTasks(); }, TaskCreationOptions.LongRunning);
 
             ThreadPool.GetMaxThreads(out int worker, out _);
@@ -81,11 +81,19 @@ namespace ProcessingService.BusinessLogic.Protocols
                 await Task.Delay(1000);
             }
         }
-
-        public Queue<TaskResultDTO> GetAndClearResults()
+        public TaskResultDTO ExecuteImmediately(IProtocol task)
         {
-            Queue<TaskResultDTO> queue = new Queue<TaskResultDTO>(finished);
-            finished.Clear();
+            Task<TaskResultDTO> t1 = Task.Run(() => task.Execute());
+            t1.Wait();
+            return t1.Result;
+        }
+
+        public Queue<TaskResultDTO> RetrieveResults()
+        {
+            Queue<TaskResultDTO> queue = new Queue<TaskResultDTO>();
+            while (finished.Count > 0)
+                queue.Enqueue(finished.Dequeue());
+
             return queue;
         }
         public void AddRange(List<IProtocol> tasks)

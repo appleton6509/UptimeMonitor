@@ -10,7 +10,7 @@ namespace ProcessingService.BusinessLogic.Protocols
 {
     public class ProtocolFactory
     {
-        private readonly Dictionary<Data.Models.Protocol, IProtocolService> Map;
+        private readonly Dictionary<Data.Models.Protocol, IProtocolService> map;
         private readonly IHttpService http;
         private readonly IFtpService ftp;
         public ProtocolFactory(
@@ -20,7 +20,7 @@ namespace ProcessingService.BusinessLogic.Protocols
             ftp = ftpService;
             http = httpService;
 
-            Map = new Dictionary<Data.Models.Protocol, IProtocolService>() {
+            map = new Dictionary<Data.Models.Protocol, IProtocolService>() {
                 { Data.Models.Protocol.http , http },
                 { Data.Models.Protocol.https, http },
                 { Data.Models.Protocol.ftp, ftp },
@@ -28,21 +28,21 @@ namespace ProcessingService.BusinessLogic.Protocols
                 { Data.Models.Protocol.sftp, ftp }
             };
         }
-        public List<IProtocol> GetProtocols(List<EndPointExtended> eps)
+        public List<IProtocol> MapToProtocols(List<EndPointExtended> eps)
         {
             List<IProtocol> tasks = new List<IProtocol>();
             foreach (var ep in eps)
             {
-                IProtocol protocol = GetProtocol(ep);
+                IProtocol protocol = MapToProtocol(ep);
                 if (protocol != null)
                     tasks.Add(protocol);
             }
             return tasks;
         }
 
-        private IProtocol GetProtocol(EndPointExtended ep)
+        private IProtocol MapToProtocol(EndPointExtended ep)
         {
-            IProtocolService service =  Map[ep.Protocol];
+            IProtocolService service =  map[ep.Protocol];
             IProtocol protocol = new Protocol(service, ep);
 
             return protocol;

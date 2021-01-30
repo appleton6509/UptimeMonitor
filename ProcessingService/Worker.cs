@@ -30,32 +30,46 @@ namespace ProcessingService
         /// Number of service workers that will run simultaneously
         /// </summary>
         private int NumberOfWorkers { get; set; } = 5000;
-        private static List<EndPointExtended> newEndPointsAdded;
+
 
         public Worker(ILogger<Worker> logger, ProtocolFactory factory, ProtocolHandler handler,
-            IDatabaseService db ,IEmailService email, ResultProcessor processor)
+            IDatabaseService db , ResultProcessor processor)
         {
             log = logger;
             this.factory = factory;
             this.handler = handler;
             this.db = db;
             this.processor = processor;
-            newEndPointsAdded = new List<EndPointExtended>();
-            using System.Timers.Timer timer = new System.Timers.Timer(30000)
-            {
-                AutoReset = true
-            };
-            timer.Elapsed += Timer_Elapsed;
-
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             log.LogTrace("Worker running at: {time}", DateTimeOffset.Now);
-            Task find = new Task(() => { FindNewEndPoints(handler); }, TaskCreationOptions.PreferFairness);
-            Task process = new Task(async () => {
+            Task findNewlyAdded = new Task(async () => {
                 while (handler.IsRunning)
                 {
-                    processor.Process(handler.GetAndClearResults());
+                    try
+                    {
+                        var endpoints = db.FindNewEndpoints();
+                        var protocols = factory.MapToProtocols(endpoints);
+                        Queue<TaskResultDTO> queue = new Queue<TaskResultDTO>();
+                        foreach(var pro in protocols)
+                        {
+                            var result = handler.ExecuteImmediately(pro);
+                            queue.Enqueue(result);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        log.LogError("Error finding new endpoings in DB: " + e.Message);
+                    }
+                    await Task.Delay(4000);
+                }
+            }, TaskCreationOptions.PreferFairness);
+
+            Task processResults = new Task(async () => {
+                while (handler.IsRunning)
+                {
+                    processor.Process(handler.RetrieveResults());
                      await Task.Delay(1000);
                 }
             }, TaskCreationOptions.PreferFairness);
@@ -63,48 +77,16 @@ namespace ProcessingService
             while (!stoppingToken.IsCancellationRequested)
             {
                 List<EndPointExtended> data = db.GetAll();
-                List<IProtocol> tasks = factory.GetProtocols(data);
+                List<IProtocol> tasks = factory.MapToProtocols(data);
                 handler.AddRange(tasks);
                 if (!handler.IsRunning)
                 {
                     handler.Start();
-                    find.Start();
-                    process.Start();
+                    findNewlyAdded.Start();
+                    processResults.Start();
                 }
 
                 await Task.Delay(_intervalBetweenPing);
-            }
-        }
-
-        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            newEndPointsAdded.Clear();
-        }
-
-        private async Task FindNewEndPoints(ProtocolHandler handler)
-        {
-            while (handler.IsRunning)
-            {
-                try
-                {
-                    var endpoints = db.FindNewEndpoints();
-                    List<EndPointExtended> toBeAdded = new List<EndPointExtended>();
-                    foreach (var ep in endpoints)
-                    {
-                        if (!newEndPointsAdded.Exists(x => x.Id.Equals(ep.Id)))
-                        {
-                            newEndPointsAdded.Add(ep);
-                            toBeAdded.Add(ep);
-                        }
-                    }
-                    List<IProtocol> newTasks = factory.GetProtocols(toBeAdded);
-                    handler.AddRange(newTasks);
-                }
-                catch (Exception e)
-                {
-                    log.LogError("Error finding new endpoings in DB: " + e.Message);
-                }
-                await Task.Delay(4000);
             }
         }
     }
