@@ -8,7 +8,6 @@ namespace ProcessingService.DTO
     public class TaskResultDTO
     {
         public ResponseResult Response { get; set; }
-        public bool? NotifyOnFailure { get; set; }
-        public string Email { get; set; }
+        public EndPointExtended EndPoint { get; set; }
     }
 }

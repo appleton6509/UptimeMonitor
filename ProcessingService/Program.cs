@@ -3,8 +3,10 @@ using Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ProcessingService.BusinessLogic;
 using ProcessingService.BusinessLogic.Protocols;
 using ProcessingService.Services;
+using ProcessingService.Services.Email;
 using System;
 using System.Net.Http;
 
@@ -44,6 +46,8 @@ namespace ProcessingService
                     services.AddSingleton<ProtocolHandler>();
                     services.AddTransient<IFtpService, FtpService>();
                     services.AddTransient<IHttpService, HttpService>();
+                    services.AddTransient<IEmailService, EmailService>();
+                    services.AddTransient<ResultProcessor>();
                 });
     }
 }

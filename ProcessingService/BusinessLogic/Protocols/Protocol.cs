@@ -21,8 +21,7 @@ namespace ProcessingService.BusinessLogic.Protocols
             TaskResultDTO task = new TaskResultDTO()
             {
                 Response = res,
-                NotifyOnFailure = _ep.NotifyOnFailure,
-                Email = _ep.Email
+                EndPoint = this._ep
             };
 
             return task;

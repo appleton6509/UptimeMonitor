@@ -30,7 +30,7 @@ namespace Data.Models
 
         public Protocol Protocol { get; set; }
 
-        public bool? NotifyOnFailure { get; set; }
+        public bool NotifyOnFailure { get; set; }
 
         public virtual ICollection<ResultData> HttpResult { get; set; }
 
