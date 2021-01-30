@@ -40,7 +40,7 @@ namespace ProcessingService.BusinessLogic
         {
             if (!ep.NotifyOnFailure)
                 return;
-            email.SendFailureEmail("appleton6509@gmail.com", ep);
+            email.SendFailureEmail(ep.Email, ep);
         }
 
         public void ProcessDb(ResponseResult result)
