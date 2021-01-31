@@ -1,15 +1,3 @@
 {
-  "dependencies": {
-    "mssql2": {
-      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/uptimeapidbserver/databases/UptimeAPI_db",
-      "type": "mssql.azure",
-      "connectionId": "Production",
-      "secretStore": "LocalSecretsFile"
-    },
-    "mssql1": {
-      "type": "mssql.local",
-      "connectionId": "Development",
-      "secretStore": "LocalSecretsFile"
-    }
-  }
+  "dependencies": {}
 }

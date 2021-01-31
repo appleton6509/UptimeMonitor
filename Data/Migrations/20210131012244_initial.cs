@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Data.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -173,7 +173,8 @@ namespace Data.Migrations
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
                     Ip = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: true),
-                    NotifyOnFailure = table.Column<bool>(type: "bit", nullable: true),
+                    Protocol = table.Column<int>(type: "int", nullable: false),
+                    NotifyOnFailure = table.Column<bool>(type: "bit", nullable: false),
                     WebUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
@@ -196,6 +197,7 @@ namespace Data.Migrations
                     IsReachable = table.Column<bool>(type: "bit", nullable: false),
                     Latency = table.Column<int>(type: "int", nullable: false),
                     StatusMessage = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Protocol = table.Column<int>(type: "int", nullable: false),
                     EndPointId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>

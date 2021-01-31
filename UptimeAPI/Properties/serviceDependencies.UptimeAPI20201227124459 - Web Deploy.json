@@ -5,12 +5,6 @@
       "connectionId": "Development",
       "suggestion": "true",
       "ignored": "true"
-    },
-    "mssql2": {
-      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/uptimeapidbserver/databases/UptimeAPI_db",
-      "type": "mssql.azure",
-      "connectionId": "Production",
-      "secretStore": "AzureAppSettings"
     }
   }
 }

@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker;Microsoft.NET.Sdk.Publish">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <UserSecretsId>dotnet-EchoWorkerService-308529E3-0647-4A47-8235-7FA2F1161E20</UserSecretsId>
     <RootNamespace>ProcessingService</RootNamespace>
   </PropertyGroup>

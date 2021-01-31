@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Data.Migrations
 {
     [DbContext(typeof(UptimeContext))]
-    [Migration("20210127200330_update endpoint")]
-    partial class updateendpoint
+    [Migration("20210131012244_initial")]
+    partial class initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -35,7 +35,7 @@ namespace Data.Migrations
                         .HasMaxLength(60)
                         .HasColumnType("nvarchar(60)");
 
-                    b.Property<bool?>("NotifyOnFailure")
+                    b.Property<bool>("NotifyOnFailure")
                         .HasColumnType("bit");
 
                     b.Property<int>("Protocol")

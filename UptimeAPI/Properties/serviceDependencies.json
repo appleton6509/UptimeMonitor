@@ -1,12 +1,3 @@
 {
-  "dependencies": {
-    "mssql2": {
-      "type": "mssql",
-      "connectionId": "Production"
-    },
-    "mssql1": {
-      "type": "mssql",
-      "connectionId": "Development"
-    }
-  }
+  "dependencies": {}
 }
