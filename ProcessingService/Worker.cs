@@ -26,10 +26,7 @@ namespace ProcessingService
         /// interval (in milliseconds) between running of app
         /// </summary>
         private readonly int _intervalBetweenPing = 60000;
-        /// <summary>
-        /// Number of service workers that will run simultaneously
-        /// </summary>
-        private int NumberOfWorkers { get; set; } = 5000;
+
 
 
         public Worker(ILogger<Worker> logger, ProtocolFactory factory, ProtocolHandler handler,
@@ -44,35 +41,8 @@ namespace ProcessingService
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             log.LogTrace("Worker running at: {time}", DateTimeOffset.Now);
-            Task findNewlyAdded = new Task(async () => {
-                while (handler.IsRunning)
-                {
-                    try
-                    {
-                        var endpoints = db.FindNewEndpoints();
-                        var protocols = factory.MapToProtocols(endpoints);
-                        Queue<TaskResultDTO> queue = new Queue<TaskResultDTO>();
-                        foreach(var pro in protocols)
-                        {
-                            var result = handler.ExecuteImmediately(pro);
-                            queue.Enqueue(result);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        log.LogError("Error finding new endpoings in DB: " + e.Message);
-                    }
-                    await Task.Delay(4000);
-                }
-            }, TaskCreationOptions.PreferFairness);
-
-            Task processResults = new Task(async () => {
-                while (handler.IsRunning)
-                {
-                    processor.Process(handler.RetrieveResults());
-                     await Task.Delay(1000);
-                }
-            }, TaskCreationOptions.PreferFairness);
+            Task findNewlyAdded = new Task( () =>  {   FindNewEndPoints(); }, TaskCreationOptions.LongRunning);
+            Task processResults = new Task( () => {  ProcessEndPoints();  }, TaskCreationOptions.LongRunning);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -86,7 +56,39 @@ namespace ProcessingService
                     processResults.Start();
                 }
 
-                await Task.Delay(_intervalBetweenPing);
+                await Task.Delay(_intervalBetweenPing, stoppingToken);
+            }
+        }
+
+        private async Task ProcessEndPoints()
+        {
+            while (handler.IsRunning)
+            {
+                processor.Process(handler.RetrieveResults());
+                await Task.Delay(1000);
+            }
+        }
+
+        private async Task FindNewEndPoints()
+        {
+            while (handler.IsRunning)
+            {
+                try
+                {
+                    var endpoints = db.FindNewEndpoints();
+                    var protocols = factory.MapToProtocols(endpoints);
+                    Queue<TaskResultDTO> queue = new Queue<TaskResultDTO>();
+                    foreach (var pro in protocols)
+                    {
+                        var result = handler.ExecuteImmediately(pro);
+                        queue.Enqueue(result);
+                    }
+                }
+                catch (Exception e)
+                {
+                    log.LogError("Error finding new endpoings in DB: " + e.Message);
+                }
+                await Task.Delay(4000);
             }
         }
     }

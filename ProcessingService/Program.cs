@@ -25,7 +25,7 @@ namespace ProcessingService
                     services.AddHostedService<Worker>();
 
                     var hosting = services.BuildServiceProvider().GetService<IHostEnvironment>();
-
+                   
                     services.AddDbContextFactory<UptimeContext>(options =>
                     {
                         if (hosting.IsDevelopment())
@@ -47,6 +47,8 @@ namespace ProcessingService
                     services.AddTransient<IFtpService, FtpService>();
                     services.AddTransient<IHttpService, HttpService>();
                     services.AddTransient<IEmailService, EmailService>();
+                    services.AddTransient<ITelnetService, TelnetService>();
+                    services.AddTransient<ISSHService, SSHService>();
                     services.AddTransient<ResultProcessor>();
                 });
     }

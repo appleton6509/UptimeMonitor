@@ -55,13 +55,13 @@ namespace ProcessingService.Services
                 result.Latency = watch.Elapsed.Milliseconds / 10;
                 result.StatusMessage = res.ReasonPhrase;
             }
-            catch (HttpRequestException e)
+            catch (HttpRequestException e) //failed to reach endpoint
             {
                 result.IsReachable = false;
                 result.StatusMessage = e.Message;
-                log.LogInformation($"Unable to reach {host} with message: " + e.Message);
+
             }
-            catch (Exception e)
+            catch (Exception e) //system error
             {
                 result.IsReachable = false;
                 result.StatusMessage = "Internal error: " + e.Message;

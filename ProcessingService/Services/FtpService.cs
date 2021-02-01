@@ -56,7 +56,6 @@ namespace ProcessingService.Services
             Stopwatch watch = new Stopwatch();
             try
             {
-
                 watch.Start();
                 var response = (FtpWebResponse)request.GetResponse();
             }
@@ -64,15 +63,13 @@ namespace ProcessingService.Services
             {
                 switch (s.Status)
                 {
-                    case WebExceptionStatus.Success:
+                    case WebExceptionStatus.Success: //means connection was successful
                         result.IsReachable = true;
-                        result.StatusMessage = " ";
                         break;
-                    case WebExceptionStatus.ProtocolError:
+                    case WebExceptionStatus.ProtocolError: // username/password error
                         result.IsReachable = true;
-                        result.StatusMessage = " ";
                         break;
-                    default:
+                    default: 
                         result.IsReachable = false;
                         result.StatusMessage = $"{s.Status} - {s.Message}";
                         break;

@@ -13,7 +13,9 @@ namespace Data.Models
         https,
         ftp,
         ftps,
-        sftp
+        sftp,
+        telnet,
+        ssh
     }
     public class EndPoint : BaseModel
     {
