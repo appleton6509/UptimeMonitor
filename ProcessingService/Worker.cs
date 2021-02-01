@@ -41,31 +41,22 @@ namespace ProcessingService
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             log.LogTrace("Worker running at: {time}", DateTimeOffset.Now);
-            Task findNewlyAdded = new Task( () =>  {   FindNewEndPoints(); }, TaskCreationOptions.LongRunning);
-            Task processResults = new Task( () => {  ProcessEndPoints();  }, TaskCreationOptions.LongRunning);
-
+            Task findNewlyAdded = Task.Run(() => { FindNewEndPoints(); });
+            processor.Subscribe(handler);
+            handler.Start();
             while (!stoppingToken.IsCancellationRequested)
             {
-                List<EndPointExtended> data = db.GetAll();
-                List<IProtocol> tasks = factory.MapToProtocols(data);
-                handler.AddRange(tasks);
-                if (!handler.IsRunning)
+                try
                 {
-                    handler.Start();
-                    findNewlyAdded.Start();
-                    processResults.Start();
+                    List<EndPointExtended> data = db.GetAll();
+                    List<IProtocol> tasks = factory.MapToProtocols(data);
+                    handler.AddRange(tasks);
+                } catch (Exception e)
+                {
+                    log.LogCritical(e.Message);
                 }
 
                 await Task.Delay(_intervalBetweenPing, stoppingToken);
-            }
-        }
-
-        private async Task ProcessEndPoints()
-        {
-            while (handler.IsRunning)
-            {
-                processor.Process(handler.RetrieveResults());
-                await Task.Delay(1000);
             }
         }
 
@@ -77,16 +68,12 @@ namespace ProcessingService
                 {
                     var endpoints = db.FindNewEndpoints();
                     var protocols = factory.MapToProtocols(endpoints);
-                    Queue<TaskResultDTO> queue = new Queue<TaskResultDTO>();
                     foreach (var pro in protocols)
-                    {
-                        var result = handler.ExecuteImmediately(pro);
-                        queue.Enqueue(result);
-                    }
+                        handler.ExecuteImmediately(pro);
                 }
                 catch (Exception e)
                 {
-                    log.LogError("Error finding new endpoings in DB: " + e.Message);
+                    log.LogError(e.Message);
                 }
                 await Task.Delay(4000);
             }

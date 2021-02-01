@@ -9,31 +9,17 @@ using System.Text;
 
 namespace ProcessingService.BusinessLogic
 {
-    public class ResultProcessor
+    public class ResultProcessor : IObserver<TaskResultDTO>
     {
         private readonly IDatabaseService db;
         private readonly IEmailService email;
         private readonly ILogger<ResultProcessor> log;
-
+        private IDisposable unsubscriber;
         public ResultProcessor(IDatabaseService db, IEmailService email, ILogger<ResultProcessor> log)
         {
             this.db = db;
             this.email = email;
             this.log = log;
-        }
-        public void Process(Queue<TaskResultDTO> tasks)
-        {
-            if (tasks.Count == 0)
-                return;
-           log.LogInformation($"{DateTime.UtcNow} - adding {tasks.Count} records to db");
-
-            Queue<TaskResultDTO> temp = new Queue<TaskResultDTO>(tasks);
-            while(temp.Count > 0)
-            {
-                TaskResultDTO result = temp.Dequeue();
-                ProcessDb(result.Response);
-                ProcessEmail(result.EndPoint);
-            }
         }
 
         public void ProcessEmail(EndPointExtended ep)
@@ -55,5 +41,31 @@ namespace ProcessingService.BusinessLogic
             }
         }
 
+        //not implemented, will not unsubscribe
+        public void OnCompleted()
+        {
+            throw new NotImplementedException();
+        }
+        //not implemented
+        public void OnError(Exception error)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnNext(TaskResultDTO value)
+        {
+            this.ProcessDb(value.Response);
+            this.ProcessEmail(value.EndPoint);
+        }
+
+        public void Subscribe(IObservable<TaskResultDTO> observerable)
+        {
+            unsubscriber = observerable.Subscribe(this);
+        }
+        public void Unsubscribe()
+        {
+            if (unsubscriber != null)
+                unsubscriber.Dispose();
+        }
     }
 }

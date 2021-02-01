@@ -9,33 +9,63 @@ using System.Threading.Tasks;
 
 namespace ProcessingService.BusinessLogic.Protocols
 {
-    public class ProtocolHandler
+    public class ProtocolHandler : IObservable<TaskResultDTO>
     {
-        private Queue<Task<TaskResultDTO>> queued;
-        private List<Task<TaskResultDTO>> running;
-        private Queue<TaskResultDTO> finished;
-        private readonly ILogger<ProtocolHandler> log;
+        private Queue<Task<TaskResultDTO>> _queued;
+        private List<Task<TaskResultDTO>> _running;
+        private Queue<TaskResultDTO> _finished;
+        private readonly ILogger<ProtocolHandler> _log;
         private bool _isRunning;
         public bool IsRunning
         {
             get { return _isRunning; }
             set { _isRunning = value; }
         }
-        private readonly Task moveCompletedTasks;
-        private readonly Task beginTasks;
-        private readonly int threadWorkers;
+        private readonly Task _moveCompleted;
+        private readonly Task _beginTasks;
+        private readonly int _threadWorkers;
+        private List<IObserver<TaskResultDTO>> _observers;
 
-        public ProtocolHandler(ILogger<ProtocolHandler> logger)
+        public ProtocolHandler(ILogger<ProtocolHandler> logger) 
         {
-            log = logger;
-            finished = new Queue<TaskResultDTO>();
-            running = new List<Task<TaskResultDTO>>();
-            queued = new Queue<Task<TaskResultDTO>>();
-            moveCompletedTasks = new Task( () => { this.MoveCompletedTasks(); }, TaskCreationOptions.LongRunning);
-            beginTasks = new Task(() => { this.BeginTasks(); }, TaskCreationOptions.LongRunning);
+            _log = logger;
+            _finished = new Queue<TaskResultDTO>();
+            _running = new List<Task<TaskResultDTO>>();
+            _queued = new Queue<Task<TaskResultDTO>>();
+            _moveCompleted = new Task( () => { this.MoveCompletedTasks(); }, TaskCreationOptions.LongRunning);
+            _beginTasks = new Task(() => { this.BeginTasks(); }, TaskCreationOptions.LongRunning);
+            _observers = new List<IObserver<TaskResultDTO>>();
 
             ThreadPool.GetMaxThreads(out int worker, out _);
-            threadWorkers = worker;
+            _threadWorkers = worker;
+        }
+
+        private class Unsubscriber : IDisposable
+        {
+            private List<IObserver<TaskResultDTO>> observers;
+            private IObserver<TaskResultDTO> observer;
+            public Unsubscriber(List<IObserver<TaskResultDTO>> observers, IObserver<TaskResultDTO> observer)
+            {
+                this.observer = observer;
+                this.observers = observers;
+            }
+            public void Dispose()
+            {
+                if (observer != null)
+                    observers.Remove(observer);
+            }
+        }
+
+        public IDisposable Subscribe(IObserver<TaskResultDTO> observer)
+        {
+            if (!_observers.Contains(observer))
+            {
+                _observers.Add(observer);
+                var numerate = _finished.GetEnumerator();
+                while (numerate.MoveNext())
+                    observer.OnNext(numerate.Current);
+            }
+            return new Unsubscriber(_observers, observer);
         }
 
         public void Stop()
@@ -45,8 +75,8 @@ namespace ProcessingService.BusinessLogic.Protocols
         public void Start()
         {
             _isRunning = true;
-            moveCompletedTasks.Start();
-            beginTasks.Start();
+            _moveCompleted.Start();
+            _beginTasks.Start();
         }
 
         private async Task BeginTasks()
@@ -54,12 +84,12 @@ namespace ProcessingService.BusinessLogic.Protocols
             while (_isRunning)
             {
                 while (
-                    running.Count < threadWorkers && 
-                    queued.Count > 0 && 
+                    _running.Count < _threadWorkers && 
+                    _queued.Count > 0 && 
                     _isRunning)
                 {
-                    var task = queued.Dequeue();
-                    running.Add(task);
+                    var task = _queued.Dequeue();
+                    _running.Add(task);
                     task.Start();
                 }
                 await Task.Delay(1000);
@@ -69,41 +99,40 @@ namespace ProcessingService.BusinessLogic.Protocols
         {
             while (_isRunning)
             {
-                foreach(var task in running)
+                foreach(var task in _running)
                 {
                     if (task.IsCompleted == true)
-                        finished.Enqueue(task.Result);
+                    {
+                        _finished.Enqueue(task.Result);
+                        _observers.ForEach(x => x.OnNext(task.Result));
+                    }
                 }
-
-                int  removed = running.RemoveAll(x => x.IsCompleted);
+                int  removed = _running.RemoveAll(x => x.IsCompleted);
                 if (removed > 0)
-                    log.LogInformation($"{DateTime.UtcNow} - removed ({removed}) and moved into completed list");
+                    _log.LogInformation($"{DateTime.UtcNow} - removed ({removed}) and moved into completed list");
+                _observers.ForEach(x => x.OnCompleted());
+
                 await Task.Delay(1000);
             }
         }
-        public TaskResultDTO ExecuteImmediately(IProtocol task)
+        public void ExecuteImmediately(IProtocol task)
         {
             Task<TaskResultDTO> t1 = Task.Run(() => task.Execute());
             t1.Wait();
-            return t1.Result;
+            var result = t1.Result;
+            _finished.Enqueue(result);
+            _observers.ForEach(x => x.OnNext(result));
         }
 
-        public Queue<TaskResultDTO> RetrieveResults()
-        {
-            Queue<TaskResultDTO> queue = new Queue<TaskResultDTO>();
-            while (finished.Count > 0)
-                queue.Enqueue(finished.Dequeue());
-
-            return queue;
-        }
         public void AddRange(List<IProtocol> tasks)
         {
             if (tasks is null || tasks.Count == 0)
                 return;
 
-                log.LogInformation($"{DateTime.UtcNow} - adding ({tasks.Count}) tasks to queue");
+                _log.LogInformation($"{DateTime.UtcNow} - adding ({tasks.Count}) tasks to queue");
                 foreach (var task in tasks)
-                    queued.Enqueue(new Task<TaskResultDTO>(() => task.Execute()));
+                    _queued.Enqueue(new Task<TaskResultDTO>(() => task.Execute()));
         }
+
     }
 }
