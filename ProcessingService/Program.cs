@@ -24,11 +24,9 @@ namespace ProcessingService
                 {
                     services.AddHostedService<Worker>();
 
-                    var hosting = services.BuildServiceProvider().GetService<IHostEnvironment>();
-                   
                     services.AddDbContextFactory<UptimeContext>(options =>
                     {
-                        if (hosting.IsDevelopment())
+                        if (hostContext.HostingEnvironment.IsDevelopment())
                             options.UseSqlServer(hostContext.Configuration.GetSection("ConnectionStrings")["Development"]);
                         else
                             options.UseSqlServer(hostContext.Configuration.GetSection("ConnectionStrings")["Production"]);
