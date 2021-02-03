@@ -51,7 +51,7 @@ namespace ProcessingService.Services
         {
             using var context = _contextFactory.CreateDbContext();
             var endpoint = from ep in context.EndPoint
-                      join ht in context.WebUser
+                      join ht in context.ApplicationUser
                       on ep.UserId equals ht.Id
                       select new EndPointExtended
                       {
@@ -69,7 +69,7 @@ namespace ProcessingService.Services
         {
             using var context = _contextFactory.CreateDbContext();
             var endpoint = from ep in context.EndPoint
-                           join ht in context.WebUser
+                           join ht in context.ApplicationUser
                            on ep.UserId equals ht.Id
                            where ep.Id == id
                            select new EndPointExtended

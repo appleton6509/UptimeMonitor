@@ -40,16 +40,20 @@ namespace ProcessingService.BusinessLogic
                 log.LogError("Error adding to DB: " + e.Message);
             }
         }
-
-        //not implemented, will not unsubscribe
+        /// <summary>
+        /// not implemented
+        /// </summary>
         public void OnCompleted()
         {
-            throw new NotImplementedException();
+           //do nothing, wait for more requests
         }
-        //not implemented
+       /// <summary>
+       /// not implemented
+       /// </summary>
+       /// <param name="error"></param>
         public void OnError(Exception error)
         {
-            throw new NotImplementedException();
+          // do nothing
         }
 
         public void OnNext(TaskResultDTO value)

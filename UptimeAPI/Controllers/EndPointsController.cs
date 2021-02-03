@@ -21,6 +21,7 @@ namespace UptimeAPI.Controllers
         #region Properties  / Constructor
         private readonly IAuthorizationService _authorizationService;
         private readonly IEndPointRepository _endPointRepository;
+        //TODO; move to startup as DI
         static readonly HttpClientHandler httpClientHandler = new HttpClientHandler
                 {
                     ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; }

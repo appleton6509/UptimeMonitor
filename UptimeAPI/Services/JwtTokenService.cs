@@ -14,7 +14,7 @@ namespace UptimeAPI.Services
 {
     public class JwtTokenService
     {
-        public string GenerateToken(WebUser user, JwtSettings jwtSettings)
+        public string GenerateToken(ApplicationUser user, JwtSettings jwtSettings)
         {
             var claims = new List<Claim>
             {

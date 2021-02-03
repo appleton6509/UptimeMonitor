@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -23,55 +24,51 @@ namespace UptimeAPI.Controllers
     /// </summary>
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly IMapper _mapper;
-        private readonly JwtSettings _jwtSettings;
-        private readonly IWebUserRepository _webUserRepository;
+        private readonly IApplicationUserRepository _userRepository;
 
-        public AuthController(
-            UserManager<IdentityUser> userManager
-            , IMapper mapper
-            , IOptionsSnapshot<JwtSettings> jwtSettings
-           , IWebUserRepository webUserRepository)
+        public AuthController( IApplicationUserRepository webUserRepository)
         {
-            _mapper = mapper;
-            _userManager = userManager;
-            _jwtSettings = jwtSettings.Value;
-            _webUserRepository = webUserRepository;
+            _userRepository = webUserRepository;
         }
 
         [HttpPost("SignUp")]
-        public async Task<IActionResult> SignUp(WebUserDTO userDTO)
+        public async Task<IActionResult> SignUp(UserDto userdto)
         {
-            var userManager = await _userManager.FindByNameAsync(userDTO.Username);
-            if (Object.Equals(userManager,null))
+            var exists = await _userRepository.Exists(userdto.Username);
+
+            if (!exists)
             {
-                var user = _mapper.Map<WebUserDTO,IdentityUser>(userDTO);
-                var userCreateResult = await _userManager.CreateAsync(user, userDTO.Password);
+                var userCreateResult = await _userRepository.PostAsync(userdto);
                 if (userCreateResult.Succeeded)
                 {
-                    await _webUserRepository.PostAsync(new WebUser(userDTO.Username,user.Id));
-                    return Created(String.Empty, String.Empty);
+                    return Created(String.Empty,String.Empty);
                 }
- 
                 return Conflict(userCreateResult.Errors.First().Description);
             }
-            return Conflict("Username already exists");
+            return Conflict("Email already exists");
         }
 
         [HttpPost("SignIn")]
-        public async Task<IActionResult> SignIn(WebUserDTO userDTO)
+        public async Task<IActionResult> SignIn(UserDto userDTO)
         {
-            IdentityUser user = await  _userManager.FindByNameAsync(userDTO.Username);
+            bool exists = await _userRepository.Exists(userDTO.Username);
 
-            if (Object.Equals(user,null))
+            if (!exists)
                 return BadRequest("incorrect user name");
 
-            var passwordIsValid = await  _userManager.CheckPasswordAsync(user, userDTO.Password);
-            WebUser webUser = _webUserRepository.Get(user.Id);
-            if (passwordIsValid && !Object.Equals(webUser, null))
-                    return Ok(new JwtTokenService().GenerateToken(webUser, _jwtSettings));
+            var passwordValid = await _userRepository.ValidatePassword(userDTO);
+
+            if (passwordValid)
+                return Ok(await _userRepository.SignIn(userDTO));
             return BadRequest("username or password incorrect");
+        }
+
+        [Authorize]
+        [HttpPut("Update/{id}")]
+        public async Task<IActionResult> Update(Guid id, UserDto user)
+        {
+
+            return Ok();
         }
 
     }

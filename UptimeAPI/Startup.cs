@@ -18,7 +18,7 @@ using UptimeAPI.Services;
 using UptimeAPI.Controllers.Mapping;
 using Data.Repositories;
 using UptimeAPI.Controllers.Repositories;
-
+using Data.Models;
 
 namespace UptimeAPI
 {
@@ -48,13 +48,13 @@ namespace UptimeAPI
                         options.UseSqlServer(Configuration.GetConnectionString("Production"), s => s.MigrationsAssembly("Data")));
             services.AddScoped<IEndPointRepository, EndPointRepository>();
             services.AddScoped<IResultDataRepository, ResultDataRepository>();
-            services.AddScoped<IWebUserRepository, WebUserRepository>();
+            services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
 
             //mapper
             services.AddAutoMapper(typeof(MappingProfile));
 
             //for identity
-            services.AddIdentity<IdentityUser, IdentityRole>()
+            services.AddIdentity<ApplicationUser,ApplicationRole>()
                 .AddEntityFrameworkStores<UptimeContext>()
                 .AddDefaultTokenProviders();
             services.AddHttpContextAccessor();

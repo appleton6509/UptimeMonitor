@@ -11,9 +11,9 @@ namespace ProcessingService.BusinessLogic.Protocols
 {
     public class ProtocolHandler : IObservable<TaskResultDTO>
     {
-        private Queue<Task<TaskResultDTO>> _queued;
-        private List<Task<TaskResultDTO>> _running;
-        private Queue<TaskResultDTO> _finished;
+        private readonly Queue<Task<TaskResultDTO>> _queued;
+        private readonly List<Task<TaskResultDTO>> _running;
+        private readonly Queue<TaskResultDTO> _finished;
         private readonly ILogger<ProtocolHandler> _log;
         private bool _isRunning;
         public bool IsRunning
@@ -24,7 +24,7 @@ namespace ProcessingService.BusinessLogic.Protocols
         private readonly Task _moveCompleted;
         private readonly Task _beginTasks;
         private readonly int _threadWorkers;
-        private List<IObserver<TaskResultDTO>> _observers;
+        private readonly List<IObserver<TaskResultDTO>> _observers;
 
         public ProtocolHandler(ILogger<ProtocolHandler> logger) 
         {
@@ -42,8 +42,8 @@ namespace ProcessingService.BusinessLogic.Protocols
 
         private class Unsubscriber : IDisposable
         {
-            private List<IObserver<TaskResultDTO>> observers;
-            private IObserver<TaskResultDTO> observer;
+            private readonly List<IObserver<TaskResultDTO>> observers;
+            private readonly IObserver<TaskResultDTO> observer;
             public Unsubscriber(List<IObserver<TaskResultDTO>> observers, IObserver<TaskResultDTO> observer)
             {
                 this.observer = observer;

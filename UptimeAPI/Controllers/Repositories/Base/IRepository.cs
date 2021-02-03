@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Data.Repositories
 {
-    public interface IRepository<T> where T : BaseModel
+    public interface IRepository<T> where T : IBaseModel
     {
         public Task<int> PutAsync(Guid id, T model);
         public Task<int> PostAsync(T model);
