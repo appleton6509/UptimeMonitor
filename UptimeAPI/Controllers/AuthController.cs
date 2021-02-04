@@ -2,16 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using AutoMapper;
 using Data.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using UptimeAPI.Controllers.DTOs;
 using UptimeAPI.Controllers.Repositories;
-using UptimeAPI.Services;
-using UptimeAPI.Settings;
+using UptimeAPI.Services.Email;
 
 namespace UptimeAPI.Controllers
 {
@@ -25,42 +27,72 @@ namespace UptimeAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IApplicationUserRepository _userRepository;
-
-        public AuthController( IApplicationUserRepository webUserRepository)
+        private readonly IEmailService _email;
+        private readonly IConfiguration _config;
+        private readonly IWebHostEnvironment _webHost;
+        public AuthController(IApplicationUserRepository webUserRepository, IEmailService email,
+            IWebHostEnvironment webHost,
+            IConfiguration config)
         {
             _userRepository = webUserRepository;
+            _email = email;
+            _webHost = webHost;
+            _config = config;
         }
 
         [HttpPost("SignUp")]
-        public async Task<IActionResult> SignUp(UserDto userdto)
+        public async Task<ActionResult<string>> SignUp(UserDto userdto)
         {
             var exists = await _userRepository.Exists(userdto.Username);
 
             if (!exists)
             {
-                var userCreateResult = await _userRepository.PostAsync(userdto);
+                IdentityResult userCreateResult = await _userRepository.PostAsync(userdto);
                 if (userCreateResult.Succeeded)
                 {
-                    return Created(String.Empty,String.Empty);
+                    ApplicationUser user = await _userRepository.Get(userdto.Username);
+                    string token = await _userRepository.GenerateConfirmationToken(user.Id);
+                    string encodeToken = HttpUtility.UrlEncode(token);
+                    string host = HttpContext.Request.Host.Value;
+                    string protocol = HttpContext.Request.Scheme;
+                    string url = $"{protocol}://{host}/api/Auth/{nameof(ConfirmEmail)}?id={user.Id}&token={encodeToken}";
+                    _email.SendNewAccountConfirmation(user.Email, url);
+                    return Ok();
                 }
                 return Conflict(userCreateResult.Errors.First().Description);
             }
             return Conflict("Email already exists");
         }
+        [HttpGet("ConfirmEmail")]
+        public async Task<RedirectResult> ConfirmEmail(Guid id, string token)
+        {
+            IdentityResult result = await _userRepository.ConfirmEmail(id, token);
+            string hostname = _webHost.EnvironmentName.Equals("Development") ?
+                                                _config.GetSection("Redirect")["HostnameDev"] :
+                                                _config.GetSection("Redirect")["Hostname"];
+
+
+           string path = result.Succeeded ?
+                 _config.GetSection("Redirect")["EmailConfirmedSuccess"] :
+                 _config.GetSection("Redirect")["EmailConfirmedFailure"];
+
+            return Redirect(hostname + path);
+        }
 
         [HttpPost("SignIn")]
-        public async Task<IActionResult> SignIn(UserDto userDTO)
+        public async Task<ActionResult<string>> SignIn(UserDto userDTO)
         {
             bool exists = await _userRepository.Exists(userDTO.Username);
-
             if (!exists)
                 return BadRequest("incorrect user name");
 
-            var passwordValid = await _userRepository.ValidatePassword(userDTO);
+            bool passwordValid = await _userRepository.ValidatePassword(userDTO);
+            if (!passwordValid)
+                return BadRequest("username or password incorrect");
 
-            if (passwordValid)
-                return Ok(await _userRepository.SignIn(userDTO));
-            return BadRequest("username or password incorrect");
+
+            return Ok(await _userRepository.SignIn(userDTO));
+
         }
 
         [Authorize]

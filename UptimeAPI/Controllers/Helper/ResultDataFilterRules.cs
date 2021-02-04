@@ -60,6 +60,8 @@ namespace UptimeAPI.Controllers.Helper
                     case SortBy.Timestamp:
                         _query = _query.OrderByDescending(x => x.TimeStamp);
                         break;
+                    case SortBy.None:
+                        break;
                     default:
                         _query = _query.OrderByDescending(x => x.TimeStamp);
                         break;
@@ -87,6 +89,8 @@ namespace UptimeAPI.Controllers.Helper
                         break;
                     case SortBy.Timestamp:
                         _query = _query.OrderBy(x => x.TimeStamp);
+                        break;
+                    case SortBy.None:
                         break;
                     default:
                         _query = _query.OrderBy(x => x.TimeStamp);

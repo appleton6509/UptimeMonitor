@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace ProcessingService.Services.Email
+
+namespace UptimeAPI.Services.Email
 {
     public class EmailSettings
     {

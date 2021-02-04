@@ -8,9 +8,8 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using UptimeAPI.Settings;
 
-namespace UptimeAPI.Services
+namespace UptimeAPI.Services.Token
 {
     public class JwtTokenService
     {

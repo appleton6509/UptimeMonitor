@@ -9,7 +9,6 @@ using Data;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using UptimeAPI.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
@@ -19,6 +18,8 @@ using UptimeAPI.Controllers.Mapping;
 using Data.Repositories;
 using UptimeAPI.Controllers.Repositories;
 using Data.Models;
+using UptimeAPI.Services.Email;
+using UptimeAPI.Services.Token;
 
 namespace UptimeAPI
 {
@@ -49,6 +50,7 @@ namespace UptimeAPI
             services.AddScoped<IEndPointRepository, EndPointRepository>();
             services.AddScoped<IResultDataRepository, ResultDataRepository>();
             services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
+            services.AddScoped<IEmailService, EmailService>();
 
             //mapper
             services.AddAutoMapper(typeof(MappingProfile));

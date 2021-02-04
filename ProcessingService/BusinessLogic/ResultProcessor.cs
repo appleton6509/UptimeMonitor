@@ -22,11 +22,11 @@ namespace ProcessingService.BusinessLogic
             this.log = log;
         }
 
-        public void ProcessEmail(EndPointExtended ep)
+        public void ProcessEmail(TaskResultDTO ep)
         {
-            if (!ep.NotifyOnFailure)
+            if (!ep.EndPoint.NotifyOnFailure || ep.Response.IsReachable)
                 return;
-            email.SendFailureEmail(ep.Email, ep);
+            email.SendFailureEmail(ep.EndPoint);
         }
 
         public void ProcessDb(ResponseResult result)
@@ -59,7 +59,7 @@ namespace ProcessingService.BusinessLogic
         public void OnNext(TaskResultDTO value)
         {
             this.ProcessDb(value.Response);
-            this.ProcessEmail(value.EndPoint);
+            this.ProcessEmail(value);
         }
 
         public void Subscribe(IObservable<TaskResultDTO> observerable)

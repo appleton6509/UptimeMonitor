@@ -24,5 +24,9 @@ namespace UptimeAPI.Controllers.Repositories
        /// <param name="user"></param>
        /// <returns></returns>
         Task<bool> ValidatePassword(UserDto user);
+        Task<string> GenerateConfirmationToken(Guid id);
+        ApplicationUser Get(Guid id);
+        Task<ApplicationUser> Get(string username);
+        Task<IdentityResult> ConfirmEmail(Guid id, string token);
     }
 }

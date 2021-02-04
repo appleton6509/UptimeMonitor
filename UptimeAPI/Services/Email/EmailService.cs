@@ -1,25 +1,21 @@
 ﻿using MailKit.Net.Smtp;
 using MimeKit;
-using ProcessingService.BusinessLogic;
-using ProcessingService.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using System.Configuration;
-using Microsoft.Extensions.Configuration;
-using Data.Models;
 using Microsoft.Extensions.Logging;
-using MimeKit.Utils;
+using Data.Models;
+using Microsoft.AspNetCore.Http;
+using System.Web;
 
-namespace ProcessingService.Services.Email
+namespace UptimeAPI.Services.Email
 {
     public interface IEmailService
     {
-        void SendFailureEmail(EndPointExtended ep);
+        void SendNewAccountConfirmation(string email, string confirmationUrl);
     }
     public enum EmailTemplates {
-        EmailOnFailure
+        NewAccountConfirm
     }
 
     /// <summary>
@@ -33,7 +29,7 @@ namespace ProcessingService.Services.Email
         /// </summary>
         private readonly Dictionary<EmailTemplates, string> map = new Dictionary<EmailTemplates, string>()
         {
-            { EmailTemplates.EmailOnFailure, @"Services/Email/EmailOnFailureTemplate.html" }
+            { EmailTemplates.NewAccountConfirm, @"Services/Email/NewAccountConfirmation.html" }
         };
 
         public EmailService(ILogger<EmailService> log) {
@@ -44,21 +40,18 @@ namespace ProcessingService.Services.Email
         /// </summary>
         /// <param name="email">email of recipient</param>
         /// <param name="ep">endpoint data</param>
-        public void SendFailureEmail(EndPointExtended ep)
+        public void SendNewAccountConfirmation(string email,string confirmationUrl)
         {
-            using StreamReader reader = new StreamReader(map[EmailTemplates.EmailOnFailure]);
+            using StreamReader reader = new StreamReader(map[EmailTemplates.NewAccountConfirm]);
             string html = reader.ReadToEnd();
             var builder = new BodyBuilder();
-            string body = html
-                .Replace("{ip}", ep.Ip)
-                .Replace("{description}", ep.Description)
-                .Replace("{protocol}", ep.Protocol.ToString());
+            string body = html.Replace("{url}", confirmationUrl);
             builder.HtmlBody = body;
-            
+
             var msg = new MimeMessage();
             EmailSettings em = EmailSettings.GetFromAppSettings("SmtpEmail");
-            em.ToEmail = ep.Email;
-            em.Subject = "Site Failure";
+            em.ToEmail = email;
+            em.Subject = "confirm your new account";
             msg.From.Add(new MailboxAddress(em.UserName, em.UserName));
             msg.To.Add(new MailboxAddress(em.ToName,em.ToEmail));
             msg.Subject = em.Subject;
@@ -72,7 +65,7 @@ namespace ProcessingService.Services.Email
                 client.Send(msg);
             } catch(Exception e)
             {
-                log.LogError("Unable to send failure email: " + e.Message);
+                log.LogError("Unable to send confirmation email: " + e.Message);
             }
 
         }

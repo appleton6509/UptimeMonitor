@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace UptimeAPI.Settings
+namespace UptimeAPI.Services.Token
 {
     public class JwtSettings
     {
