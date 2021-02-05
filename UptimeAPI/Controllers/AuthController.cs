@@ -95,14 +95,6 @@ namespace UptimeAPI.Controllers
 
         }
 
-        [Authorize]
-        [HttpPut("Profile/{id}")]
-        public async Task<IActionResult> Update(Guid id, UserDto user)
-        {
-
-            return Ok();
-        }
-
         [HttpGet("ForgotPassword/{email}")]
         public async Task<IActionResult> ForgotPassword(string email)
         {
@@ -110,20 +102,27 @@ namespace UptimeAPI.Controllers
 
             if (user == null)
                 BadRequest("email does not exist");
-            string token = await _userRepository.GenerateConfirmationToken(user.Id);
+            string token = await _userRepository.GeneratePasswordResetToken(user.Id);
 
             string hostname = _webHost.EnvironmentName.Equals("Development") ?
                                     _config.GetSection("Redirect")["HostnameDev"] :
                                     _config.GetSection("Redirect")["Hostname"];
 
             string path = _config.GetSection("Redirect")["ResetPassword"];
+            string tokenEncoded = HttpUtility.UrlEncode(token);
+            string url = $"{hostname}{path}?id={user.Id}&email={user.Email}&token={tokenEncoded}";
 
-            string url = $"{hostname}{path}?id={user.Id}&email={user.Email}&token={token}";
-            string encodedUrl = HttpUtility.UrlEncode(url);
-            _email.SendEmail(email, encodedUrl, EmailTemplates.ResetPassword);
-            return Ok();
+            _email.SendEmail(email, url, EmailTemplates.ResetPassword);
+            return NoContent();
         }
-
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPassword(UserResetDTO reset)
+        {
+            IdentityResult result = await _userRepository.ResetPassword(reset);
+            if (result.Succeeded)
+                return Ok();
+            return BadRequest(result.Errors.ToList()[0].Description);
+        }
     }
 }
 

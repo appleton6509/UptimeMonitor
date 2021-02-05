@@ -116,15 +116,15 @@ namespace UptimeAPI.Controllers.Repositories
         /// </summary>
         /// <param name="id"></param>
         /// <returns>password reset token</returns>
-        public async Task<string> GeneratePasswordReset(Guid id)
+        public async Task<string> GeneratePasswordResetToken(Guid id)
         {
             ApplicationUser user = await GetUser(id);
-           return  await _userManager.GeneratePasswordResetTokenAsync(user);
+            return await _userManager.GeneratePasswordResetTokenAsync(user);
         }
-        public async Task<IdentityResult> ResetPassword(Guid id, string token, string newPassword)
+        public async Task<IdentityResult> ResetPassword(UserResetDTO reset)
         {
-            ApplicationUser user = await GetUser(id);
-           return await  _userManager.ResetPasswordAsync(user, token, newPassword);
+            ApplicationUser user = await GetUser(reset.id);
+            return await _userManager.ResetPasswordAsync(user, reset.token, reset.password);
         }
         private async Task<ApplicationUser> GetUser(Guid id)
         {

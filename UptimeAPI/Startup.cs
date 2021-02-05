@@ -20,6 +20,7 @@ using UptimeAPI.Controllers.Repositories;
 using Data.Models;
 using UptimeAPI.Services.Email;
 using UptimeAPI.Services.Token;
+using UptimeAPI.Controllers.Identity;
 
 namespace UptimeAPI
 {

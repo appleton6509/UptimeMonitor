@@ -24,11 +24,12 @@ namespace UptimeAPI.Controllers.Repositories
        /// <param name="user"></param>
        /// <returns></returns>
         Task<bool> ValidatePassword(UserDto user);
-        Task<string> GenerateConfirmationToken(Guid id);
         ApplicationUser Get(Guid id);
         Task<ApplicationUser> Get(string username);
-        Task<IdentityResult> ConfirmEmail(Guid id, string token);
         Task<ApplicationUser> Find(string email);
-        Task<IdentityResult> ResetPassword(Guid id, string token, string newPassword);
+        Task<IdentityResult> ConfirmEmail(Guid id, string token);
+        Task<string> GenerateConfirmationToken(Guid id);
+        Task<IdentityResult> ResetPassword(UserResetDTO reset);
+        Task<string> GeneratePasswordResetToken(Guid id);
     }
 }
