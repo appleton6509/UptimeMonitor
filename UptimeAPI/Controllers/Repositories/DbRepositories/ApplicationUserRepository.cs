@@ -41,17 +41,24 @@ namespace UptimeAPI.Controllers.Repositories
                 return true;
             return false;
         }
+
         public async Task<IdentityResult> PostAsync(UserDto user)
         {
             ApplicationUser newUser = new ApplicationUser(user.Username);
             return await _userManager.CreateAsync(newUser, user.Password);
         }
-        
-        public async Task<bool> ValidatePassword(UserDto user)
+
+        public async Task<ApplicationUser> Find(string email)
         {
+            return await _userManager.FindByNameAsync(email);
+        }
+
+        public async Task<bool> ValidatePassword(UserDto user)
+        {       
             var username = await _userManager.FindByNameAsync(user.Username);
             return await _userManager.CheckPasswordAsync(username, user.Password);
         }
+
         public async Task<string> SignIn(UserDto user)
         {
             ApplicationUser dbUser = await _userManager.FindByNameAsync(user.Username);
@@ -60,17 +67,20 @@ namespace UptimeAPI.Controllers.Repositories
 
             return String.Empty;
         }
+
         public ApplicationUser Get(Guid id)
         {
             return _context.ApplicationUser.FirstOrDefault(x => x.Id.Equals(id));
         }
+
         public async Task<ApplicationUser> Get(string username)
         {
             return await _userManager.FindByNameAsync(username);
         }
+
         public async Task<int> PutAsync(Guid id, UserDto model)
         {
-            ApplicationUser user = await _userManager.FindByIdAsync(id.ToString());
+            ApplicationUser user = await GetUser(id);
 
             if (user is null)
                 return 0;
@@ -82,6 +92,7 @@ namespace UptimeAPI.Controllers.Repositories
                 return 1;
             return 0;
         }
+
         /// <summary>
         /// returns an url encoded token string
         /// </summary>
@@ -89,14 +100,36 @@ namespace UptimeAPI.Controllers.Repositories
         /// <returns></returns>
         public async Task<string> GenerateConfirmationToken(Guid id)
         {
-            ApplicationUser user = await _userManager.FindByIdAsync(id.ToString());
+            ApplicationUser user = await GetUser(id);
             return await _userManager.GenerateEmailConfirmationTokenAsync(user);
- 
+
         }
+
         public async Task<IdentityResult> ConfirmEmail(Guid id, string token)
         {
             ApplicationUser user = await _userManager.FindByIdAsync(id.ToString());
-           return await _userManager.ConfirmEmailAsync(user, token);
+            return await _userManager.ConfirmEmailAsync(user, token);
         }
+
+        /// <summary>
+        /// generates a password reset token
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>password reset token</returns>
+        public async Task<string> GeneratePasswordReset(Guid id)
+        {
+            ApplicationUser user = await GetUser(id);
+           return  await _userManager.GeneratePasswordResetTokenAsync(user);
+        }
+        public async Task<IdentityResult> ResetPassword(Guid id, string token, string newPassword)
+        {
+            ApplicationUser user = await GetUser(id);
+           return await  _userManager.ResetPasswordAsync(user, token, newPassword);
+        }
+        private async Task<ApplicationUser> GetUser(Guid id)
+        {
+            return await _userManager.FindByIdAsync(id.ToString());
+        }
+
     }
 }

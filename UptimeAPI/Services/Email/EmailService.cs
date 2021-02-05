@@ -12,10 +12,12 @@ namespace UptimeAPI.Services.Email
 {
     public interface IEmailService
     {
-        void SendNewAccountConfirmation(string email, string confirmationUrl);
+        void SendEmail(string email, string confirmationUrl, EmailTemplates template);
     }
-    public enum EmailTemplates {
-        NewAccountConfirm
+    public enum EmailTemplates
+    {
+        ConfirmNewAccount,
+        ResetPassword
     }
 
     /// <summary>
@@ -27,22 +29,32 @@ namespace UptimeAPI.Services.Email
         /// <summary>
         /// map to email template file location
         /// </summary>
-        private readonly Dictionary<EmailTemplates, string> map = new Dictionary<EmailTemplates, string>()
+        private readonly Dictionary<EmailTemplates, string> htmlMap = new Dictionary<EmailTemplates, string>()
         {
-            { EmailTemplates.NewAccountConfirm, @"Services/Email/NewAccountConfirmation.html" }
+            { EmailTemplates.ConfirmNewAccount, @"Services/Email/NewAccountConfirmation.html" },
+                        { EmailTemplates.ResetPassword, @"Services/Email/ResetPassword.html" }
+        };
+        private readonly Dictionary<EmailTemplates, string> subjectMap = new Dictionary<EmailTemplates, string>()
+        {
+            { EmailTemplates.ConfirmNewAccount, @"Confirm your account" },
+                        { EmailTemplates.ResetPassword, @"Reset your password" }
         };
 
-        public EmailService(ILogger<EmailService> log) {
+        public EmailService(ILogger<EmailService> log)
+        {
             this.log = log;
         }
+      
         /// <summary>
-        /// sends failure notice emails for endpoints.
+        /// 
         /// </summary>
-        /// <param name="email">email of recipient</param>
-        /// <param name="ep">endpoint data</param>
-        public void SendNewAccountConfirmation(string email,string confirmationUrl)
+        /// <param name="email"></param>
+        /// <param name="confirmationUrl"></param>
+        /// <param name="subject"></param>
+        /// <param name="template"></param>
+        public void SendEmail(string email, string confirmationUrl, EmailTemplates template)
         {
-            using StreamReader reader = new StreamReader(map[EmailTemplates.NewAccountConfirm]);
+            using StreamReader reader = new StreamReader(htmlMap[template]);
             string html = reader.ReadToEnd();
             var builder = new BodyBuilder();
             string body = html.Replace("{url}", confirmationUrl);
@@ -51,9 +63,10 @@ namespace UptimeAPI.Services.Email
             var msg = new MimeMessage();
             EmailSettings em = EmailSettings.GetFromAppSettings("SmtpEmail");
             em.ToEmail = email;
-            em.Subject = "confirm your new account";
+
+            em.Subject = subjectMap[template];
             msg.From.Add(new MailboxAddress(em.UserName, em.UserName));
-            msg.To.Add(new MailboxAddress(em.ToName,em.ToEmail));
+            msg.To.Add(new MailboxAddress(em.ToName, em.ToEmail));
             msg.Subject = em.Subject;
             msg.Body = builder.ToMessageBody();
 
@@ -63,11 +76,11 @@ namespace UptimeAPI.Services.Email
                 client.Connect(em.SmtpServer, em.SmtpPort, em.UseSSL);
                 client.Authenticate(em.UserName, em.Password);
                 client.Send(msg);
-            } catch(Exception e)
-            {
-                log.LogError("Unable to send confirmation email: " + e.Message);
             }
-
+            catch (Exception e)
+            {
+                log.LogError("Unable to send email: " + e.Message);
+            }
         }
     }
 }

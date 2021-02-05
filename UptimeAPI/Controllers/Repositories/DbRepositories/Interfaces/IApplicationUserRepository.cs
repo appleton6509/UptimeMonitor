@@ -28,5 +28,7 @@ namespace UptimeAPI.Controllers.Repositories
         ApplicationUser Get(Guid id);
         Task<ApplicationUser> Get(string username);
         Task<IdentityResult> ConfirmEmail(Guid id, string token);
+        Task<ApplicationUser> Find(string email);
+        Task<IdentityResult> ResetPassword(Guid id, string token, string newPassword);
     }
 }

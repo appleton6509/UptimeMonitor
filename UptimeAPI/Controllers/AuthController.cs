@@ -56,7 +56,7 @@ namespace UptimeAPI.Controllers
                     string host = HttpContext.Request.Host.Value;
                     string protocol = HttpContext.Request.Scheme;
                     string url = $"{protocol}://{host}/api/Auth/{nameof(ConfirmEmail)}?id={user.Id}&token={encodeToken}";
-                    _email.SendNewAccountConfirmation(user.Email, url);
+                    _email.SendEmail(user.Email, url,EmailTemplates.ConfirmNewAccount);
                     return Ok();
                 }
                 return Conflict(userCreateResult.Errors.First().Description);
@@ -96,10 +96,31 @@ namespace UptimeAPI.Controllers
         }
 
         [Authorize]
-        [HttpPut("Update/{id}")]
+        [HttpPut("Profile/{id}")]
         public async Task<IActionResult> Update(Guid id, UserDto user)
         {
 
+            return Ok();
+        }
+
+        [HttpGet("ForgotPassword/{email}")]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+           ApplicationUser user = await  _userRepository.Find(email);
+
+            if (user == null)
+                BadRequest("email does not exist");
+            string token = await _userRepository.GenerateConfirmationToken(user.Id);
+
+            string hostname = _webHost.EnvironmentName.Equals("Development") ?
+                                    _config.GetSection("Redirect")["HostnameDev"] :
+                                    _config.GetSection("Redirect")["Hostname"];
+
+            string path = _config.GetSection("Redirect")["ResetPassword"];
+
+            string url = $"{hostname}{path}?id={user.Id}&email={user.Email}&token={token}";
+            string encodedUrl = HttpUtility.UrlEncode(url);
+            _email.SendEmail(email, encodedUrl, EmailTemplates.ResetPassword);
             return Ok();
         }
 

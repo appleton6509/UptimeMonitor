@@ -7,9 +7,13 @@
 
   <ItemGroup>
     <None Remove="Services\Email\NewAccountConfirmation.html" />
+    <None Remove="Services\Email\ResetPassword.html" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Services\Email\ResetPassword.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Services\Email\NewAccountConfirmation.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
