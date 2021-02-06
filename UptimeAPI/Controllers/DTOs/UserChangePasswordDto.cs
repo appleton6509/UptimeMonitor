@@ -6,13 +6,15 @@ using System.Threading.Tasks;
 
 namespace UptimeAPI.Controllers.DTOs
 {
-    public class UserResetDTO
+    public class UserChangePasswordDto
     {
         [Required]
-        public Guid Id { get; set; }
+        [Display(Name = "Email")]
+        public string Username { get; set; }
         [Required]
         public string Password { get; set; }
         [Required]
-        public string Token { get; set; }
+        [Display(Name = "New Password")]
+        public string NewPassword { get; set; }
     }
 }

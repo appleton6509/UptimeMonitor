@@ -56,7 +56,7 @@ namespace UptimeAPI.Controllers
                     string host = HttpContext.Request.Host.Value;
                     string protocol = HttpContext.Request.Scheme;
                     string url = $"{protocol}://{host}/api/Auth/{nameof(ConfirmEmail)}?id={user.Id}&token={encodeToken}";
-                    _email.SendEmail(user.Email, url,EmailTemplates.ConfirmNewAccount);
+                    _email.SendEmail(user.Email, url, EmailTemplates.ConfirmNewAccount);
                     return Ok();
                 }
                 return Conflict(userCreateResult.Errors.First().Description);
@@ -72,9 +72,9 @@ namespace UptimeAPI.Controllers
                                                 _config.GetSection("Redirect")["Hostname"];
 
 
-           string path = result.Succeeded ?
-                 _config.GetSection("Redirect")["EmailConfirmedSuccess"] :
-                 _config.GetSection("Redirect")["EmailConfirmedFailure"];
+            string path = result.Succeeded ?
+                  _config.GetSection("Redirect")["EmailConfirmedSuccess"] :
+                  _config.GetSection("Redirect")["EmailConfirmedFailure"];
 
             return Redirect(hostname + path);
         }
@@ -98,7 +98,7 @@ namespace UptimeAPI.Controllers
         [HttpGet("ForgotPassword/{email}")]
         public async Task<IActionResult> ForgotPassword(string email)
         {
-           ApplicationUser user = await  _userRepository.Find(email);
+            ApplicationUser user = await _userRepository.Find(email);
 
             if (user == null)
                 BadRequest("email does not exist");
@@ -115,12 +115,22 @@ namespace UptimeAPI.Controllers
             _email.SendEmail(email, url, EmailTemplates.ResetPassword);
             return NoContent();
         }
+
         [HttpPost("ResetPassword")]
         public async Task<IActionResult> ResetPassword(UserResetDTO reset)
         {
             IdentityResult result = await _userRepository.ResetPassword(reset);
             if (result.Succeeded)
                 return Ok();
+            return BadRequest(result.Errors.ToList()[0].Description);
+        }
+
+        [HttpPut("ChangePassword")]
+        public async Task<IActionResult> ChangePassword(UserChangePasswordDto details)
+        {
+            IdentityResult result = await _userRepository.ChangePassword(details);
+            if (result.Succeeded)
+                return NoContent();
             return BadRequest(result.Errors.ToList()[0].Description);
         }
     }

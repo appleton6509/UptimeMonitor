@@ -15,6 +15,7 @@ namespace ProcessingService.BusinessLogic
         private readonly IEmailService email;
         private readonly ILogger<ResultProcessor> log;
         private IDisposable unsubscriber;
+
         public ResultProcessor(IDatabaseService db, IEmailService email, ILogger<ResultProcessor> log)
         {
             this.db = db;

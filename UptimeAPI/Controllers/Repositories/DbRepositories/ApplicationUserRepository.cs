@@ -123,13 +123,19 @@ namespace UptimeAPI.Controllers.Repositories
         }
         public async Task<IdentityResult> ResetPassword(UserResetDTO reset)
         {
-            ApplicationUser user = await GetUser(reset.id);
-            return await _userManager.ResetPasswordAsync(user, reset.token, reset.password);
+            ApplicationUser user = await GetUser(reset.Id);
+            return await _userManager.ResetPasswordAsync(user, reset.Token, reset.Password);
+        }
+        public async Task<IdentityResult> ChangePassword(UserChangePasswordDto details)
+        {
+            ApplicationUser user = await _userManager.FindByNameAsync(details.Username);
+           return await _userManager.ChangePasswordAsync(user, details.Password, details.NewPassword);
         }
         private async Task<ApplicationUser> GetUser(Guid id)
         {
             return await _userManager.FindByIdAsync(id.ToString());
         }
+        
 
     }
 }

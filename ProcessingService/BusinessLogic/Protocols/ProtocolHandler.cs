@@ -107,9 +107,12 @@ namespace ProcessingService.BusinessLogic.Protocols
                         _observers.ForEach(x => x.OnNext(task.Result));
                     }
                 }
-                int  removed = _running.RemoveAll(x => x.IsCompleted);
-                if (removed > 0)
-                    _log.LogInformation($"{DateTime.UtcNow} - removed ({removed}) and moved into completed list");
+                int removeCount = _running.Count;
+                if (removeCount > 0)
+                {
+                    _running.RemoveAll(x => x.IsCompleted);
+                    _log.LogInformation($"{DateTime.UtcNow} - removed ({removeCount}) and moved into completed list");
+                }
                 _observers.ForEach(x => x.OnCompleted());
 
                 await Task.Delay(1000);
