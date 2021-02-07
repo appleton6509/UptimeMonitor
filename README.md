@@ -13,8 +13,8 @@ check out the **[Demo](https://uptimemonitor1.herokuapp.com/)**
 - Multiple Protocols including: Https,ftp, ssh and more.
 
 ![Image description](https://github.com/appleton6509/UptimeMonitor/blob/master/pic1.PNG)
-![Image description](https://github.com/appleton6509/UptimeMonitor/blob/master/pic2.png)
-![Image description](https://github.com/appleton6509/UptimeMonitor/blob/master/pic3.png)
-![Image description](https://github.com/appleton6509/UptimeMonitor/blob/master/pic4.png)
-![Image description](https://github.com/appleton6509/UptimeMonitor/blob/master/pic5.png)
-![Image description](https://github.com/appleton6509/UptimeMonitor/blob/master/pic6.png)
+![Image description](https://github.com/appleton6509/UptimeMonitor/blob/master/pic2.PNG)
+![Image description](https://github.com/appleton6509/UptimeMonitor/blob/master/pic3.PNG)
+![Image description](https://github.com/appleton6509/UptimeMonitor/blob/master/pic4.PNG)
+![Image description](https://github.com/appleton6509/UptimeMonitor/blob/master/pic5.PNG)
+![Image description](https://github.com/appleton6509/UptimeMonitor/blob/master/pic6.PNG)
