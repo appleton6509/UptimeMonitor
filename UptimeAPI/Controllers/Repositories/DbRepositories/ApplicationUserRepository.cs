@@ -19,19 +19,15 @@ namespace UptimeAPI.Controllers.Repositories
     {
         private readonly JwtSettings _settings;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
 
         public ApplicationUserRepository(
             UptimeContext context, 
             IHttpContextAccessor httpcontext,
             UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
             IOptionsSnapshot<JwtSettings> jwtSettings) : base(context,httpcontext)
         {
             _userManager = userManager;
             _settings = jwtSettings.Value;
-            _signInManager = signInManager;
-
         }
 
         public async Task<bool> Exists(string userName)
@@ -135,7 +131,9 @@ namespace UptimeAPI.Controllers.Repositories
         {
             return await _userManager.FindByIdAsync(id.ToString());
         }
-        
-
+        public async Task<IdentityResult> DeleteAccount(ApplicationUser user)
+        {
+           return await _userManager.DeleteAsync(user);
+        }
     }
 }

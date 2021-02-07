@@ -32,5 +32,6 @@ namespace UptimeAPI.Controllers.Repositories
         Task<IdentityResult> ResetPassword(UserResetDTO reset);
         Task<string> GeneratePasswordResetToken(Guid id);
         Task<IdentityResult> ChangePassword(UserChangePasswordDto details);
+        Task<IdentityResult> DeleteAccount(ApplicationUser user);
     }
 }

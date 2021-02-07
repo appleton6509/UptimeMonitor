@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using UptimeAPI.Controllers.DTOs;
 using UptimeAPI.Controllers.Repositories;
+using UptimeAPI.Services;
 using UptimeAPI.Services.Email;
 
 namespace UptimeAPI.Controllers
@@ -20,7 +21,7 @@ namespace UptimeAPI.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
-    [AllowAnonymous]
+    [Authorize]
     /// <summary>
     /// class for creating and authorizing users
     /// </summary>
@@ -30,16 +31,18 @@ namespace UptimeAPI.Controllers
         private readonly IEmailService _email;
         private readonly IConfiguration _config;
         private readonly IWebHostEnvironment _webHost;
+        private readonly IAuthorizationService _authorizationService;
         public AuthController(IApplicationUserRepository webUserRepository, IEmailService email,
-            IWebHostEnvironment webHost,
+            IWebHostEnvironment webHost, IAuthorizationService authorization,
             IConfiguration config)
         {
             _userRepository = webUserRepository;
             _email = email;
             _webHost = webHost;
             _config = config;
+            _authorizationService = authorization;
         }
-
+        [AllowAnonymous]
         [HttpPost("SignUp")]
         public async Task<ActionResult<string>> SignUp(UserDto userdto)
         {
@@ -63,6 +66,7 @@ namespace UptimeAPI.Controllers
             }
             return Conflict("Email already exists");
         }
+        [AllowAnonymous]
         [HttpGet("ConfirmEmail")]
         public async Task<RedirectResult> ConfirmEmail(Guid id, string token)
         {
@@ -78,7 +82,7 @@ namespace UptimeAPI.Controllers
 
             return Redirect(hostname + path);
         }
-
+        [AllowAnonymous]
         [HttpPost("SignIn")]
         public async Task<ActionResult<string>> SignIn(UserDto userDTO)
         {
@@ -94,7 +98,7 @@ namespace UptimeAPI.Controllers
             return Ok(await _userRepository.SignIn(userDTO));
 
         }
-
+        [AllowAnonymous]
         [HttpGet("ForgotPassword/{email}")]
         public async Task<IActionResult> ForgotPassword(string email)
         {
@@ -115,7 +119,7 @@ namespace UptimeAPI.Controllers
             _email.SendEmail(email, url, EmailTemplates.ResetPassword);
             return NoContent();
         }
-
+        [AllowAnonymous]
         [HttpPost("ResetPassword")]
         public async Task<IActionResult> ResetPassword(UserResetDTO reset)
         {
@@ -128,7 +132,32 @@ namespace UptimeAPI.Controllers
         [HttpPut("ChangePassword")]
         public async Task<IActionResult> ChangePassword(UserChangePasswordDto details)
         {
+            ApplicationUser user = await _userRepository.Find(details.Username);
+            if (user is null)
+                BadRequest("Invalid email address");
+
+            AuthorizationResult auth = await _authorizationService.AuthorizeAsync(User, user, Operations.Update);
+            if (!auth.Succeeded)
+                return new ForbidResult();
+
             IdentityResult result = await _userRepository.ChangePassword(details);
+            if (result.Succeeded)
+                return NoContent();
+            return BadRequest(result.Errors.ToList()[0].Description);
+        }
+
+        [HttpDelete("DeleteAccount/{id}")]
+        public async Task<IActionResult> DeleteAccount(Guid id)
+        {
+            ApplicationUser user =  _userRepository.Get(id);
+            if (user is null)
+                BadRequest("Invalid user");
+
+            AuthorizationResult auth = await _authorizationService.AuthorizeAsync(User, user, Operations.Delete);
+            if (!auth.Succeeded)
+                return new ForbidResult();
+
+            IdentityResult result = await _userRepository.DeleteAccount(user);
             if (result.Succeeded)
                 return NoContent();
             return BadRequest(result.Errors.ToList()[0].Description);

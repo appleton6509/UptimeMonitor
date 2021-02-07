@@ -19,7 +19,8 @@ namespace UptimeAPI.Services
           private readonly Dictionary<Type,string > _types = new Dictionary<Type,string >
             {
                 {typeof(EndPoint),nameof(EndPoint)},
-                {typeof(ResultData),nameof(ResultData) }
+                {typeof(ResultData),nameof(ResultData) },
+                                {typeof(ApplicationUser),nameof(ApplicationUser) }
             };
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, 
             OperationAuthorizationRequirement requirement, IBaseModel resource)
@@ -40,6 +41,12 @@ namespace UptimeAPI.Services
                             isSuccessful = true;
                         break;
                     }
+                case nameof(ApplicationUser):
+                    {
+                        if ((resource as ApplicationUser).Id == userId)
+                            isSuccessful = true;
+                        break;
+                    }
                 default:
                     break;
             }
@@ -51,6 +58,7 @@ namespace UptimeAPI.Services
     }
     public class Operations
     {
+#pragma warning disable CA2211 // Non-constant fields should not be visible
         public static OperationAuthorizationRequirement Create =
             new OperationAuthorizationRequirement { Name = nameof(Create) };
         public static OperationAuthorizationRequirement Read =
@@ -59,5 +67,6 @@ namespace UptimeAPI.Services
             new OperationAuthorizationRequirement { Name = nameof(Update) };
         public static OperationAuthorizationRequirement Delete =
             new OperationAuthorizationRequirement { Name = nameof(Delete) };
+#pragma warning restore CA2211 // Non-constant fields should not be visible
     }
 }
