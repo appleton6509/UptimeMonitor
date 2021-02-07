@@ -122,6 +122,7 @@ namespace UptimeAPI.Controllers
         {
             return _endPointRepository.GetEndPointsStatus();
         }
+
         [AllowAnonymous]
         // GET: api/EndPoints/OnlineStatus/https://www.brian.com
         [HttpGet("OnlineStatus/{url}")]
