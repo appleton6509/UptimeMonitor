@@ -12,7 +12,6 @@ using UptimeAPI.Services;
 namespace UptimeAPI.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize]
     [ApiController]
     public class ResultController : ControllerBase
     {

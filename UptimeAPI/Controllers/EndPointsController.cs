@@ -15,7 +15,6 @@ namespace UptimeAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class EndPointsController : ControllerBase
     {
         #region Properties  / Constructor
@@ -123,10 +122,10 @@ namespace UptimeAPI.Controllers
             return _endPointRepository.GetEndPointsStatus();
         }
 
+        // POST: api/EndPoints/OnlineStatus
         [AllowAnonymous]
-        // GET: api/EndPoints/OnlineStatus/https://www.brian.com
-        [HttpGet("OnlineStatus/{url}")]
-        public  ActionResult<bool> GetOnlineStatus(string url)
+        [HttpPost("OnlineStatus")]
+        public  ActionResult<bool> GetOnlineStatus([FromBody]string url)
         {
             try
             {

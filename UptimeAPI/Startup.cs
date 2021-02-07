@@ -61,7 +61,7 @@ namespace UptimeAPI
                 .AddDefaultTokenProviders();
             services.AddHttpContextAccessor();
 
-            //for Tokens
+            //Authentication
             var jwtSettings = Configuration.GetSection("Jwt").Get<JwtSettings>();
             services.Configure<JwtSettings>(Configuration.GetSection("Jwt"));
             services.AddAuthentication(opt =>

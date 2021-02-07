@@ -21,7 +21,6 @@ namespace UptimeAPI.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     /// <summary>
     /// class for creating and authorizing users
     /// </summary>
@@ -32,6 +31,7 @@ namespace UptimeAPI.Controllers
         private readonly IConfiguration _config;
         private readonly IWebHostEnvironment _webHost;
         private readonly IAuthorizationService _authorizationService;
+
         public AuthController(IApplicationUserRepository webUserRepository, IEmailService email,
             IWebHostEnvironment webHost, IAuthorizationService authorization,
             IConfiguration config)
