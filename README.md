@@ -12,7 +12,7 @@ check out the **[Demo](https://uptimemonitor1.herokuapp.com/)**
 - Email notifications
 - Multiple Protocols including: Https,ftp, ssh and more.
 
-![Image description](https://github.com/appleton6509/UptimeMonitor/blob/master/pic1.png)
+![Image description](https://github.com/appleton6509/UptimeMonitor/blob/master/pic1.PNG)
 ![Image description](https://github.com/appleton6509/UptimeMonitor/blob/master/pic2.png)
 ![Image description](https://github.com/appleton6509/UptimeMonitor/blob/master/pic3.png)
 ![Image description](https://github.com/appleton6509/UptimeMonitor/blob/master/pic4.png)
