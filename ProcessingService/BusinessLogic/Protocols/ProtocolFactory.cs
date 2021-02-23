@@ -15,6 +15,7 @@ namespace ProcessingService.BusinessLogic.Protocols
         private readonly IFtpService ftp;
         private readonly ISSHService ssh;
         private readonly ITelnetService telnet;
+
         public ProtocolFactory(
             IFtpService ftpService,
            ITelnetService telnetService,
@@ -36,6 +37,7 @@ namespace ProcessingService.BusinessLogic.Protocols
                 { Data.Models.Protocol.ssh, ssh }
             };
         }
+
         public List<IProtocol> MapToProtocols(List<EndPointExtended> eps)
         {
             List<IProtocol> tasks = new List<IProtocol>();

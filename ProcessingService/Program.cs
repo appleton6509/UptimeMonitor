@@ -46,7 +46,7 @@ namespace ProcessingService
                     services.AddTransient<IHttpService, HttpService>();
                     services.AddTransient<IEmailService, EmailService>();
                     services.AddTransient<ITelnetService, TelnetService>();
-                    services.AddTransient<ISSHService, SSHService>();
+                    services.AddTransient<ISSHService, SshService>();
                     services.AddTransient<ResultProcessor>();
                 });
     }

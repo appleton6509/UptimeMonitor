@@ -14,5 +14,27 @@ namespace ProcessingService.Models
         public string StatusMessage { get; set; }
         public Protocol Protocol { get; set; }
 
+        public static ResponseResult Create(EndPointExtended endpoint)
+        {
+            ResponseResult result = new ResponseResult()
+            {
+                Id = endpoint.Id,
+                Protocol = endpoint.Protocol,
+                TimeStamp = DateTime.UtcNow,
+                IsReachable = false,
+            };
+            return result;
+        }
+        public void UpdateAsFailed(string errorMessage)
+        {
+            this.IsReachable = false;
+            this.StatusMessage = errorMessage;
+        }
+        public void UpdateAsSuccessful(int latency)
+        {
+            this.Latency = latency;
+            this.IsReachable = true;
+        }
+
     }
 }

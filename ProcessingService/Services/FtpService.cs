@@ -10,9 +10,7 @@ using System.Threading.Tasks;
 
 namespace ProcessingService.Services
 {
-    public interface IFtpService : IProtocolService
-    {
-    }
+    public interface IFtpService : IProtocolService { }
     public class FtpService : IFtpService
     {
         private readonly ILogger<FtpService> log;
@@ -22,73 +20,63 @@ namespace ProcessingService.Services
         }
         public ResponseResult CheckConnection(EndPointExtended endpoint)
         {
-            ResponseResult res = null;
-            switch (endpoint.Protocol)
-            {
-                case Data.Models.Protocol.ftp:
-                    res = CheckFTP(endpoint);
-                    break;
-                case Data.Models.Protocol.ftps:
-                    res = CheckFTP(endpoint, true);
-                    break;
-                case Data.Models.Protocol.sftp:
-                    res = CheckSFTP(endpoint);
-                    break;
-            }
-            return res;
+            return CheckFTP(endpoint, endpoint.Protocol);
         }
-        private ResponseResult CheckFTP(EndPointExtended endpoint, bool useftps = false)
+        private ResponseResult CheckFTP(EndPointExtended endpoint, Data.Models.Protocol protocol)
         {
-            var request = (FtpWebRequest)WebRequest.Create($"ftp://{endpoint.Ip}");
-            request.Credentials = new NetworkCredential("username", "password");
-            request.Method = WebRequestMethods.Ftp.ListDirectory;
-
-            if (useftps)
-                request.EnableSsl = true;
-
-            ResponseResult result = new ResponseResult()
-            {
-                Id = endpoint.Id,
-                IsReachable = false,
-                Protocol = Data.Models.Protocol.ftp,
-                TimeStamp = DateTime.UtcNow
-            };
+            FtpWebRequest request = CreateFtpRequest(endpoint, protocol);
+            ResponseResult result;
             Stopwatch watch = new Stopwatch();
             try
             {
                 watch.Start();
                 var response = (FtpWebResponse)request.GetResponse();
-            }
-            catch (WebException s)
-            {
-                switch (s.Status)
-                {
-                    case WebExceptionStatus.Success: //means connection was successful
-                        result.IsReachable = true;
-                        break;
-                    case WebExceptionStatus.ProtocolError: // username/password error
-                        result.IsReachable = true;
-                        break;
-                    default: 
-                        result.IsReachable = false;
-                        result.StatusMessage = $"{s.Status} - {s.Message}";
-                        break;
-                }
+                watch.Stop();
+                result = CreateResponseResult(endpoint, watch.Elapsed.Milliseconds / 10);
             }
             catch (Exception e)
             {
-                result.IsReachable = false;
-                result.StatusMessage = $"{e.Message}";
-                log.LogError($"IP: {endpoint.Ip} - {e.Message}");
-
-            }
-            finally
-            {
-                watch.Stop();
-                if (result.IsReachable)
-                    result.Latency = watch.Elapsed.Milliseconds / 10;
+                result = CreateResponseResult(endpoint,0,e);
             }
             return result;
+        }
+        private ResponseResult CreateResponseResult(EndPointExtended endpoint,int latency = 0,Exception e = null)
+        {
+            ResponseResult result = ResponseResult.Create(endpoint);
+            if (e.GetType() == typeof(WebException))
+            {
+                WebException exception = (e as WebException);
+                switch (exception.Status)
+                {
+                    case WebExceptionStatus.Success: //means connection was successful
+                        result.UpdateAsSuccessful(latency);
+                        break;
+                    case WebExceptionStatus.ProtocolError: // username/password error
+                        result.UpdateAsSuccessful(latency);
+                        break;
+                    default:
+                        result.UpdateAsFailed($"{exception.Status} - {exception.Message}");
+                        break;
+                }
+            } else if (e.GetType() == typeof(Exception))
+            {
+                result.UpdateAsFailed($"{e.Message}");
+                log.LogError($"IP: {endpoint.Ip} - {e.Message}");
+            } else
+                result.UpdateAsSuccessful(latency);
+            return result;
+        }
+
+        private static FtpWebRequest CreateFtpRequest(EndPointExtended endpoint, Data.Models.Protocol protocol)
+        {
+            var request = (FtpWebRequest)WebRequest.Create($"ftp://{endpoint.Ip}");
+            request.Credentials = new NetworkCredential("username", "password");
+            request.Method = WebRequestMethods.Ftp.ListDirectory;
+
+            if (protocol == Data.Models.Protocol.ftps)
+                request.EnableSsl = true;
+
+            return request;
         }
 
         private ResponseResult CheckSFTP(EndPointExtended endpoint)

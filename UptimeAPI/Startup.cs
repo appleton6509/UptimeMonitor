@@ -20,6 +20,7 @@ using UptimeAPI.Controllers.Repositories;
 using Data.Models;
 using UptimeAPI.Services.Email;
 using UptimeAPI.Services.Token;
+using Microsoft.Extensions.Logging;
 
 namespace UptimeAPI
 {
@@ -36,17 +37,17 @@ namespace UptimeAPI
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services, ILogger<Startup> logger)
         {
             services.AddControllers();
 
             //for entity framework
             if (_environment.IsDevelopment())
+
+
                 services.AddDbContext<UptimeContext>(options =>
-                        options.UseSqlServer(Configuration.GetConnectionString("Development"), s => s.MigrationsAssembly("Data")));
-            else
-                services.AddDbContext<UptimeContext>(options =>
-                        options.UseSqlServer(Configuration.GetConnectionString("Production"), s => s.MigrationsAssembly("Data")));
+        options.UseSqlServer(Configuration.GetConnectionString("Default"), s => s.MigrationsAssembly("Data")));
+
             services.AddScoped<IEndPointRepository, EndPointRepository>();
             services.AddScoped<IResultDataRepository, ResultDataRepository>();
             services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
@@ -56,7 +57,7 @@ namespace UptimeAPI
             services.AddAutoMapper(typeof(MappingProfile));
 
             //for identity
-            services.AddIdentity<ApplicationUser,ApplicationRole>()
+            services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddEntityFrameworkStores<UptimeContext>()
                 .AddDefaultTokenProviders();
             services.AddHttpContextAccessor();
@@ -123,13 +124,13 @@ namespace UptimeAPI
             {
                 x.SwaggerEndpoint("v1/swagger.json", "UptimeAP v1");
             });
-            
+
             app.UseHttpsRedirection();
 
             app.UseRouting();
 
             app.UseCors(AppCorsPolicy);
-           
+
             app.UseAuthentication();
             app.UseAuthorization();
 

@@ -22,45 +22,46 @@ namespace ProcessingService.Services
             log = logger;
         }
 
-        public ResponseResult CheckConnection(EndPointExtended ep)
+        public ResponseResult CheckConnection(EndPointExtended endpoint)
         {
-            if (ep.Ip is null)
-                return new ResponseResult()
-                {
-                    Id = ep.Id,
-                    TimeStamp = DateTime.UtcNow,
-                    IsReachable = false,
-                    Latency = 0,
-                    StatusMessage = "Invalid hostname: " + ep.Ip,
-                    Protocol = Data.Models.Protocol.http
-                };
-
-            string host = $"{ep.Protocol}://{ep.Ip}";
-            ResponseResult result = new ResponseResult
+            if (endpoint.Ip is null)
             {
-                IsReachable = true,
-                Id = ep.Id,
-                Protocol = ep.Protocol
-            };
-
+                ResponseResult failedResult = ResponseResult.Create(endpoint);
+                failedResult.StatusMessage = "Invalid hostname: " + endpoint.Ip;
+                return failedResult;
+            }
+            ResponseResult result = ResponseResult.Create(endpoint);
             try
             {
-                HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, host);
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
+                string host = $"{endpoint.Protocol}://{endpoint.Ip}";
+                HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, host);
                 HttpResponseMessage res = http.SendAsync(message).Result;
                 watch.Stop();
-                if (!res.IsSuccessStatusCode)
-                    result.IsReachable = false;
-                result.Latency = watch.Elapsed.Milliseconds / 10;
-                result.StatusMessage = res.ReasonPhrase;
+                CreateResponseResult(endpoint, res, watch.Elapsed.Milliseconds / 10);
             }
             catch (Exception e)
             {
-                result.IsReachable = false;
-                result.StatusMessage =  e.Message;
+                result = CreateResponseResult(endpoint, null, 0, e);
             }
             return result;
+        }
+        private ResponseResult CreateResponseResult(EndPointExtended endpoint, HttpResponseMessage response = null, int latency = 0,Exception exception = null)
+        {
+            ResponseResult result = ResponseResult.Create(endpoint);
+            if (response.IsSuccessStatusCode)
+            {
+                result.IsReachable = true;
+                result.StatusMessage = response.ReasonPhrase;
+                result.Latency = latency;
+            }  else
+            {
+                result.IsReachable = false;
+                result.StatusMessage = (exception is null) ? response.ReasonPhrase : exception.Message;
+            }
+            return result;
+
         }
     }
 }

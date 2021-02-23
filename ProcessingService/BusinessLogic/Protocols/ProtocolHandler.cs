@@ -11,35 +11,6 @@ namespace ProcessingService.BusinessLogic.Protocols
 {
     public class ProtocolHandler : IObservable<TaskResultDTO>
     {
-        private readonly Queue<Task<TaskResultDTO>> _queued;
-        private readonly List<Task<TaskResultDTO>> _running;
-        private readonly Queue<TaskResultDTO> _finished;
-        private readonly ILogger<ProtocolHandler> _log;
-        private bool _isRunning;
-        public bool IsRunning
-        {
-            get { return _isRunning; }
-            set { _isRunning = value; }
-        }
-        private readonly Task _moveCompleted;
-        private readonly Task _beginTasks;
-        private readonly int _threadWorkers;
-        private readonly List<IObserver<TaskResultDTO>> _observers;
-
-        public ProtocolHandler(ILogger<ProtocolHandler> logger) 
-        {
-            _log = logger;
-            _finished = new Queue<TaskResultDTO>();
-            _running = new List<Task<TaskResultDTO>>();
-            _queued = new Queue<Task<TaskResultDTO>>();
-            _moveCompleted = new Task( () => { this.MoveCompletedTasks(); }, TaskCreationOptions.LongRunning);
-            _beginTasks = new Task(() => { this.BeginTasks(); }, TaskCreationOptions.LongRunning);
-            _observers = new List<IObserver<TaskResultDTO>>();
-
-            ThreadPool.GetMaxThreads(out int worker, out _);
-            _threadWorkers = worker;
-        }
-
         private class Unsubscriber : IDisposable
         {
             private readonly List<IObserver<TaskResultDTO>> observers;
@@ -54,6 +25,36 @@ namespace ProcessingService.BusinessLogic.Protocols
                 if (observer != null)
                     observers.Remove(observer);
             }
+        }
+
+        private readonly Queue<Task<TaskResultDTO>> _queued;
+        private readonly List<Task<TaskResultDTO>> _running;
+        private readonly Queue<TaskResultDTO> _finished;
+        private readonly ILogger<ProtocolHandler> _log;
+        private readonly Task _moveCompleted;
+        private readonly Task _beginTasks;
+        private readonly int _threadWorkers;
+        private readonly List<IObserver<TaskResultDTO>> _observers;
+        private bool _isRunning;
+
+        public bool IsRunning
+        {
+            get { return _isRunning; }
+            set { _isRunning = value; }
+        }
+
+        public ProtocolHandler(ILogger<ProtocolHandler> logger) 
+        {
+            _log = logger;
+            _finished = new Queue<TaskResultDTO>();
+            _running = new List<Task<TaskResultDTO>>();
+            _queued = new Queue<Task<TaskResultDTO>>();
+            _moveCompleted = new Task( () => { this.MoveCompletedTasks(); }, TaskCreationOptions.LongRunning);
+            _beginTasks = new Task(() => { this.BeginTasks(); }, TaskCreationOptions.LongRunning);
+            _observers = new List<IObserver<TaskResultDTO>>();
+
+            ThreadPool.GetMaxThreads(out int worker, out _);
+            _threadWorkers = worker;
         }
 
         public IDisposable Subscribe(IObserver<TaskResultDTO> observer)
@@ -72,6 +73,7 @@ namespace ProcessingService.BusinessLogic.Protocols
         {
             _isRunning = false;
         }
+
         public void Start()
         {
             _isRunning = true;
@@ -79,45 +81,6 @@ namespace ProcessingService.BusinessLogic.Protocols
             _beginTasks.Start();
         }
 
-        private async Task BeginTasks()
-        {
-            while (_isRunning)
-            {
-                while (
-                    _running.Count < _threadWorkers && 
-                    _queued.Count > 0 && 
-                    _isRunning)
-                {
-                    var task = _queued.Dequeue();
-                    _running.Add(task);
-                    task.Start();
-                }
-                await Task.Delay(1000);
-            }
-        }
-        private async Task MoveCompletedTasks()
-        {
-            while (_isRunning)
-            {
-                foreach(var task in _running)
-                {
-                    if (task.IsCompleted == true)
-                    {
-                        _finished.Enqueue(task.Result);
-                        _observers.ForEach(x => x.OnNext(task.Result));
-                    }
-                }
-                int removeCount = _running.Count;
-                if (removeCount > 0)
-                {
-                    _running.RemoveAll(x => x.IsCompleted);
-                    _log.LogInformation($"{DateTime.UtcNow} - removed ({removeCount}) and moved into completed list");
-                }
-                _observers.ForEach(x => x.OnCompleted());
-
-                await Task.Delay(1000);
-            }
-        }
         public void ExecuteImmediately(IProtocol task)
         {
             Task<TaskResultDTO> t1 = Task.Run(() => task.Execute());
@@ -132,10 +95,73 @@ namespace ProcessingService.BusinessLogic.Protocols
             if (tasks is null || tasks.Count == 0)
                 return;
 
-                _log.LogInformation($"{DateTime.UtcNow} - adding ({tasks.Count}) tasks to queue");
-                foreach (var task in tasks)
-                    _queued.Enqueue(new Task<TaskResultDTO>(() => task.Execute()));
+            _log.LogInformation($"{DateTime.UtcNow} - adding ({tasks.Count}) tasks to queue");
+            foreach (var task in tasks)
+                _queued.Enqueue(new Task<TaskResultDTO>(() => task.Execute()));
         }
 
+        private async Task BeginTasks()
+        {
+            while (_isRunning)
+            {
+                await AddTasksToRunning();
+                await Task.Delay(1000);
+            }
+        }
+
+        private async Task AddTasksToRunning()
+        {
+           await Task.Run(() =>
+            {
+                while (
+                    _running.Count < _threadWorkers &&
+                    _queued.Count > 0 &&
+                    _isRunning)
+                {
+                    var task = _queued.Dequeue();
+                    _running.Add(task);
+                    task.Start();
+                }
+            });
+        }
+
+        private async Task MoveCompletedTasks()
+        {
+            while (_isRunning)
+            {
+                await MoveTasksWithResults();
+                await RemoveTasksThatAreCompleted();
+                _observers.ForEach(x => x.OnCompleted());
+                await Task.Delay(1000);
+            }
+        }
+
+        private async Task MoveTasksWithResults()
+        {
+            await Task.Run(() =>
+            {
+                foreach (var task in _running)
+                {
+                    if (task.IsCompleted == true)
+                    {
+                        _finished.Enqueue(task.Result);
+                        _observers.ForEach(x => x.OnNext(task.Result));
+                    }
+                }
+            });
+        }
+
+        private async Task RemoveTasksThatAreCompleted()
+        {
+           await Task.Run(() =>
+            {
+                int removeCount = _running.Count;
+                if (removeCount > 0)
+                {
+                    _running.RemoveAll(x => x.IsCompleted);
+                    _log.LogInformation($"{DateTime.UtcNow} - removed ({removeCount}) and moved into completed list");
+                }
+            });
+        }
     }
 }
